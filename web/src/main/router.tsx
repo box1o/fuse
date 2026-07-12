@@ -17,20 +17,6 @@ export const router = createBrowserRouter([
                         element: <Layout />,
                         children: [
                             {
-                                path: ROUTES.EDITOR,
-                                element: <Outlet />, //NOTE: groups /editor and /editor/:id
-                                children: [
-                                    {
-                                        index: true,
-                                        lazy: () => import("@/features/editor/editor.page"),
-                                    },
-                                    {
-                                        path: ":id",
-                                        lazy: () => import("@/features/editor/editor.page"),
-                                    },
-                                ],
-                            },
-                            {
                                 path: ROUTES.DOCUMENTATION,
                                 lazy: () => import("@/features/docs/docs.page"),
                             },
