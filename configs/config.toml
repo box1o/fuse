@@ -45,6 +45,7 @@ session_secret = ""
 [auth.google]
 client_id = ""
 client_secret = ""
+callback_url = ""
 
 [session]
 duration = 86400

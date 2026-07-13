@@ -60,6 +60,10 @@ func (a *AuthProvider) setupSessionStore() error {
 }
 
 func (a *AuthProvider) getCallbackURL(provider string) string {
+	if a.cfg.Auth.Google.CallbackURL != "" {
+		return a.cfg.Auth.Google.CallbackURL
+	}
+
 	scheme := "http"
 	if a.cfg.Server.TLS.Enabled {
 		scheme = "https"

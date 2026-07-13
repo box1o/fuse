@@ -61,6 +61,7 @@ type AuthConfig struct {
 type GoogleConfig struct {
 	ClientID     string `mapstructure:"client_id" validate:"required"`
 	ClientSecret string `mapstructure:"client_secret" validate:"required"`
+	CallbackURL  string `mapstructure:"callback_url" validate:"omitempty,url"`
 }
 
 type SessionConfig struct {
