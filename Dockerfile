@@ -34,4 +34,7 @@ USER app
 
 EXPOSE 3000
 
+HEALTHCHECK --interval=10s --timeout=3s --start-period=15s --retries=5 \
+    CMD wget --quiet --tries=1 --spider http://127.0.0.1:3000/health || exit 1
+
 ENTRYPOINT ["/app/fuse"]

@@ -48,24 +48,23 @@ services:
 
       DATABASE_HOST: ${DATABASE_HOST}
       DATABASE_PORT: ${DATABASE_PORT:-5432}
-      DATABASE_USER: ${POSTGRES_USER:-fuse}
-      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-fuse_dev_password}
-      DATABASE_NAME: ${POSTGRES_DB:-fuse}
-      DATABASE_SSLMODE: disable
-      DATABASE_MIGRATE: "true"
+      DATABASE_USER: ${DATABASE_USER:-fuse}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?DATABASE_PASSWORD is required}
+      DATABASE_NAME: ${DATABASE_NAME:-fuse}
+      DATABASE_SSLMODE: ${DATABASE_SSLMODE:-require}
+      DATABASE_MIGRATE: ${DATABASE_MIGRATE:-true}
 
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT:-6380}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_DB: ${REDIS_DB:-0}
-      REDIS_TLS: ${REDIS_TLS:-true}
 
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
 
       AUTH_SESSION_SECRET: ${AUTH_SESSION_SECRET:-replace-this-development-secret}
-      AUTH_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-development-client-id}
-      AUTH_GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-development-client-secret}
+      AUTH_GOOGLE_CLIENT_ID: ${AUTH_GOOGLE_CLIENT_ID:-development-client-id}
+      AUTH_GOOGLE_CLIENT_SECRET: ${AUTH_GOOGLE_CLIENT_SECRET:-development-client-secret}
 
     healthcheck:
       test:

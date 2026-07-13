@@ -56,7 +56,6 @@ temp/
 
 # Docker
 docker-compose.override.yml
-.dockerignore
 
 # Database files
 *.db
@@ -110,4 +109,3 @@ ai.sh
 __pycache__/
 *.pyc
 *.pyo
-

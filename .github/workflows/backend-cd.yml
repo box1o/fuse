@@ -1,0 +1,214 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches:
+      - release
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fuse-backend-production
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Test and validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Run tests
+        run: go test ./...
+
+      - name: Run static analysis
+        run: go vet ./...
+
+      - name: Validate Dockerfile
+        run: docker build --check --file Dockerfile .
+
+      - name: Verify backend image builds
+        run: docker build --file Dockerfile --tag fuse-api:test .
+
+  deploy:
+    name: Build and deploy
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AZURE_CORE_OUTPUT: none
+      IMAGE: ${{ vars.AZURE_ACR_LOGIN_SERVER }}/fuse-api:sha-${{ github.sha }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Sign in to Azure with OIDC
+        uses: azure/login@2dd0bbf4064d5a1812889dc200bb8eed2597f82a # v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Sign in to Azure Container Registry
+        run: az acr login --name "${{ vars.AZURE_ACR_NAME }}"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Build and push immutable image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE }}
+            ${{ vars.AZURE_ACR_LOGIN_SERVER }}/fuse-api:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: mode=max
+          sbom: true
+
+      - name: Deploy image to Azure Container Apps
+        id: deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          previous_image=$(az containerapp show \
+            --name "${{ vars.AZURE_CONTAINER_APP }}" \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --query "properties.template.containers[0].image" \
+            --output tsv)
+          echo "previous_image=$previous_image" >> "$GITHUB_OUTPUT"
+
+          revision_suffix="r${GITHUB_SHA:0:10}"
+          az containerapp update \
+            --name "${{ vars.AZURE_CONTAINER_APP }}" \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --image "$IMAGE" \
+            --revision-suffix "$revision_suffix" \
+            --output none
+
+          revision=$(az containerapp show \
+            --name "${{ vars.AZURE_CONTAINER_APP }}" \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --query "properties.latestRevisionName" \
+            --output tsv)
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for healthy revision
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          revision="${{ steps.deploy.outputs.revision }}"
+          health_state=""
+          provisioning_state=""
+
+          for _ in {1..30}; do
+            health_state=$(az containerapp revision show \
+              --name "${{ vars.AZURE_CONTAINER_APP }}" \
+              --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+              --revision "$revision" \
+              --query "properties.healthState" \
+              --output tsv 2>/dev/null || true)
+            provisioning_state=$(az containerapp revision show \
+              --name "${{ vars.AZURE_CONTAINER_APP }}" \
+              --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+              --revision "$revision" \
+              --query "properties.provisioningState" \
+              --output tsv 2>/dev/null || true)
+
+            if [[ "$health_state" == "Healthy" && "$provisioning_state" == "Provisioned" ]]; then
+              exit 0
+            fi
+
+            if [[ "$health_state" == "Unhealthy" || "$provisioning_state" == "Failed" ]]; then
+              echo "Revision failed: health=$health_state provisioning=$provisioning_state"
+              exit 1
+            fi
+
+            echo "Waiting for revision: health=${health_state:-pending} provisioning=${provisioning_state:-pending}"
+            sleep 10
+          done
+
+          echo "Revision did not become healthy within five minutes."
+          exit 1
+
+      - name: Check public health endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          fqdn=$(az containerapp show \
+            --name "${{ vars.AZURE_CONTAINER_APP }}" \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --query "properties.configuration.ingress.fqdn" \
+            --output tsv)
+          curl --fail --silent --show-error \
+            --retry 12 \
+            --retry-all-errors \
+            --retry-delay 5 \
+            "https://$fqdn/health"
+
+      - name: Check deployed application logs
+        env:
+          AZURE_CORE_OUTPUT: json
+        run: |
+          az containerapp logs show \
+            --name "${{ vars.AZURE_CONTAINER_APP }}" \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --revision "${{ steps.deploy.outputs.revision }}" \
+            --type console \
+            --tail 50 \
+            --follow false
+
+      - name: Print failure diagnostics
+        if: ${{ failure() }}
+        env:
+          AZURE_CORE_OUTPUT: json
+        shell: bash
+        run: |
+          echo "::group::Container App state"
+          az containerapp show \
+            --name "${{ vars.AZURE_CONTAINER_APP }}" \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --query "{runningStatus:properties.runningStatus,latestRevision:properties.latestRevisionName,latestReadyRevision:properties.latestReadyRevisionName}" \
+            --output json || true
+          echo "::endgroup::"
+
+          echo "::group::System logs"
+          az containerapp logs show \
+            --name "${{ vars.AZURE_CONTAINER_APP }}" \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --type system \
+            --tail 100 \
+            --follow false || true
+          echo "::endgroup::"
+
+          if [[ -n "${{ steps.deploy.outputs.revision }}" ]]; then
+            echo "::group::Application logs"
+            az containerapp logs show \
+              --name "${{ vars.AZURE_CONTAINER_APP }}" \
+              --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+              --revision "${{ steps.deploy.outputs.revision }}" \
+              --type console \
+              --tail 100 \
+              --follow false || true
+            echo "::endgroup::"
+          fi
