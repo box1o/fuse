@@ -8,7 +8,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
+	httpSwagger "github.com/swaggo/http-swagger"
 
+	_ "fuse/docs/api"
 	"fuse/internal/interfaces/server/middleware"
 	"fuse/pkg/config"
 	"fuse/pkg/log"
@@ -87,6 +89,10 @@ func (s *Server) setupMiddleware() {
 }
 
 func (s *Server) registerRoutes() {
+	s.router.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"),
+	))
+
 	for _, setupFn := range s.routeSetups {
 		setupFn(s.router)
 	}

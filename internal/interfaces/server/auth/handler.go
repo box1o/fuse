@@ -35,6 +35,13 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 	})
 }
 
+// @Summary		Start OAuth authentication
+// @Description	Redirects the client to the selected OAuth provider.
+// @Tags			authentication
+// @Param			provider	path	string	true	"OAuth provider"
+// @Success		302
+// @Failure		400	{object}	errors.HTTPError
+// @Router			/auth/{provider} [get]
 func (h *Handler) BeginAuth(w http.ResponseWriter, r *http.Request) {
 	provider := chi.URLParam(r, "provider")
 	if provider == "" {
@@ -46,6 +53,14 @@ func (h *Handler) BeginAuth(w http.ResponseWriter, r *http.Request) {
 	gothic.BeginAuthHandler(w, r)
 }
 
+// @Summary		Complete OAuth authentication
+// @Description	Processes the OAuth callback, sets the session cookie, and redirects to the frontend.
+// @Tags			authentication
+// @Param			provider	path	string	true	"OAuth provider"
+// @Success		302
+// @Failure		400	{object}	errors.HTTPError
+// @Failure		401	{object}	errors.HTTPError
+// @Router			/auth/{provider}/callback [get]
 func (h *Handler) AuthCallback(w http.ResponseWriter, r *http.Request) {
 	provider := chi.URLParam(r, "provider")
 
@@ -75,7 +90,13 @@ func (h *Handler) AuthCallback(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// GetAuthStatus
+// @Summary		Get the authenticated user
+// @Description	Returns the user associated with the current session cookie.
+// @Tags			authentication
+// @Produce		json
+// @Success		200	{object}	map[string]interface{}
+// @Failure		401	{object}	errors.HTTPError
+// @Router			/auth/status [get]
 func (h *Handler) GetAuthStatus(w http.ResponseWriter, r *http.Request) {
 	sessionID := h.getSessionFromCookie(r)
 	if sessionID == "" {
@@ -97,6 +118,14 @@ func (h *Handler) GetAuthStatus(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary		End the current session
+// @Description	Deletes the current session and clears its cookie.
+// @Tags			authentication
+// @Produce		json
+// @Success		200	{object}	map[string]string
+// @Failure		401	{object}	errors.HTTPError
+// @Failure		500	{object}	errors.HTTPError
+// @Router			/auth/logout [post]
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	sessionID := h.getSessionFromCookie(r)
 	if sessionID == "" {

@@ -39,6 +39,18 @@ type CreateWorkspaceRequest struct {
 	Name string `json:"name"`
 }
 
+// @Summary		Create a workspace
+// @Description	Creates a workspace owned by the authenticated user.
+// @Tags			workspaces
+// @Accept			json
+// @Produce		json
+// @Param			request	body	CreateWorkspaceRequest	true	"Workspace details"
+// @Success		201	{object}	map[string]interface{}
+// @Failure		400	{object}	errors.HTTPError
+// @Failure		401	{object}	errors.HTTPError
+// @Failure		409	{object}	errors.HTTPError
+// @Failure		500	{object}	errors.HTTPError
+// @Router			/workspaces [post]
 func (h *Handler) CreateWorkspace(w http.ResponseWriter, r *http.Request) {
 	var req CreateWorkspaceRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -73,6 +85,14 @@ func (h *Handler) CreateWorkspace(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(ws)
 }
 
+// @Summary		List owned workspaces
+// @Description	Returns every workspace owned by the authenticated user.
+// @Tags			workspaces
+// @Produce		json
+// @Success		200	{array}	map[string]interface{}
+// @Failure		401	{object}	errors.HTTPError
+// @Failure		500	{object}	errors.HTTPError
+// @Router			/workspaces [get]
 func (h *Handler) GetOwnerWorkspaces(w http.ResponseWriter, r *http.Request) {
 
 	userID := middleware.GetUserIDFromContext(r.Context())
@@ -95,6 +115,15 @@ func (h *Handler) GetOwnerWorkspaces(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// @Summary		Delete a workspace
+// @Description	Deletes the workspace identified by its ID.
+// @Tags			workspaces
+// @Param			workspaceID	path	string	true	"Workspace ID"
+// @Success		204
+// @Failure		400	{object}	errors.HTTPError
+// @Failure		404	{object}	errors.HTTPError
+// @Failure		500	{object}	errors.HTTPError
+// @Router			/workspaces/{workspaceID} [delete]
 func (h *Handler) DeleteWorkspace(w http.ResponseWriter, r *http.Request) {
 	workspaceIDStr := chi.URLParam(r, "workspaceID")
 	workspaceID, err := uuid.Parse(workspaceIDStr)

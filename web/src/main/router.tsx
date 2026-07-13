@@ -1,6 +1,6 @@
 import { ErrorBoundary } from "@/shared/components";
 import { ROUTES } from "@/shared/constants/routes.constants";
-import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { Layout } from "./layout";
 import { CommandBoundary } from "./boundary";
 import { AuthProtected } from "@/features/auth/protected";
@@ -27,6 +27,10 @@ export const router = createBrowserRouter([
                             {
                                 path: ROUTES.WORKSPACE,
                                 lazy: () => import("@/features/workspace/workspace.page"),
+                            },
+                            {
+                                path: ROUTES.COMPUTE,
+                                lazy: () => import("@/features/compute/compute.page"),
                             },
                             {
                                 path: ROUTES.SETTINGS,

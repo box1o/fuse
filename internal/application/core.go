@@ -20,6 +20,7 @@ import (
 
 	"fuse/internal/interfaces/server"
 	authH "fuse/internal/interfaces/server/auth"
+	computeH "fuse/internal/interfaces/server/compute"
 	healthH "fuse/internal/interfaces/server/health"
 	mailH "fuse/internal/interfaces/server/mail"
 	authMW "fuse/internal/interfaces/server/middleware"
@@ -58,6 +59,7 @@ type Application struct {
 	healthHandler    *healthH.Handler
 	authHandler      *authH.Handler
 	workspaceHandler *wsH.Handler
+	computeHandler   *computeH.Handler
 	mailHandler      *mailH.Handler
 }
 

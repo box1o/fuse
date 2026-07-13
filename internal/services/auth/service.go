@@ -48,6 +48,13 @@ func (s *Service) HandleOAuthCallback(ctx context.Context, gothUser goth.User) (
 		if err := s.userRepo.Create(ctx, usr); err != nil {
 			return nil, "", err
 		}
+
+		if _, err := s.wsService.CreateWorkspace(ctx, "personal", usr.ID); err != nil {
+			log.Info("failed to create default workspace for user %s: %v", usr.ID, err)
+			return nil, "", err
+		}
+
+		s.eventBus.Publish(ctx, user.NewAccountCreated(usr.Name, usr.Email))
 	} else {
 		usr = existingUser
 	}
@@ -63,13 +70,6 @@ func (s *Service) HandleOAuthCallback(ctx context.Context, gothUser goth.User) (
 	if err != nil {
 		return nil, "", ErrAuthFailed.WithErr(err)
 	}
-
-	if _, err := s.wsService.CreateWorkspace(ctx, "personal", usr.ID); err != nil {
-		log.Info("failed to create default workspace for user %s: %v", usr.ID, err)
-		return nil, "", err
-	}
-
-	s.eventBus.Publish(ctx, user.NewAccountCreated(usr.Name, usr.Email))
 
 	return usr, sessionID, nil
 }

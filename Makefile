@@ -30,12 +30,12 @@ clean:
 swagger:
 	@echo "🔄 Generating swagger documentation..."
 	@mkdir -p docs/api
-	@swag init -g cmd/api/main.go -o docs/api --parseDependency --parseInternal
+	@go run github.com/swaggo/swag/cmd/swag init -g cmd/api/docs.go -o docs/api --parseDependency --parseInternal
 	@echo "✓ Swagger docs generated!"
 
 swagger-fmt:
 	@echo "🔧 Formatting swagger comments..."
-	@swag fmt -g cmd/api/main.go
+	@go run github.com/swaggo/swag/cmd/swag fmt -g cmd/api/docs.go
 	@echo "✓ Swagger comments formatted!"
 
 air:
