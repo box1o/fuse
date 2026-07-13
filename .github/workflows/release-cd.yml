@@ -1,4 +1,4 @@
-name: Backend CI/CD
+name: Release CI/CD
 
 on:
   push:
@@ -9,14 +9,20 @@ permissions:
   contents: read
 
 concurrency:
-  group: fuse-backend-production
+  group: fuse-production-release
   cancel-in-progress: false
 
 jobs:
-  test:
-    name: Test and validate
+  backend:
+    name: Backend
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AZURE_CORE_OUTPUT: none
+      IMAGE: ${{ vars.AZURE_ACR_LOGIN_SERVER }}/fuse-api:sha-${{ github.sha }}
 
     steps:
       - name: Check out repository
@@ -37,25 +43,6 @@ jobs:
       - name: Validate Dockerfile
         run: docker build --check --file Dockerfile .
 
-      - name: Verify backend image builds
-        run: docker build --file Dockerfile --tag fuse-api:test .
-
-  deploy:
-    name: Build and deploy
-    needs: test
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    permissions:
-      contents: read
-      id-token: write
-    env:
-      AZURE_CORE_OUTPUT: none
-      IMAGE: ${{ vars.AZURE_ACR_LOGIN_SERVER }}/fuse-api:sha-${{ github.sha }}
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-
       - name: Sign in to Azure with OIDC
         uses: azure/login@2dd0bbf4064d5a1812889dc200bb8eed2597f82a # v3
         with:
@@ -67,10 +54,10 @@ jobs:
         run: az acr login --name "${{ vars.AZURE_ACR_NAME }}"
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
 
       - name: Build and push immutable image
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
         with:
           context: .
           file: ./Dockerfile
@@ -88,13 +75,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
-          previous_image=$(az containerapp show \
-            --name "${{ vars.AZURE_CONTAINER_APP }}" \
-            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
-            --query "properties.template.containers[0].image" \
-            --output tsv)
-          echo "previous_image=$previous_image" >> "$GITHUB_OUTPUT"
 
           revision_suffix="r${GITHUB_SHA:0:10}"
           az containerapp update \
@@ -151,20 +131,12 @@ jobs:
           exit 1
 
       - name: Check public health endpoint
-        shell: bash
         run: |
-          set -euo pipefail
-
-          fqdn=$(az containerapp show \
-            --name "${{ vars.AZURE_CONTAINER_APP }}" \
-            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
-            --query "properties.configuration.ingress.fqdn" \
-            --output tsv)
           curl --fail --silent --show-error \
             --retry 12 \
             --retry-all-errors \
             --retry-delay 5 \
-            "https://$fqdn/health"
+            https://mback.teckstate.com/health
 
       - name: Check deployed application logs
         env:
@@ -212,3 +184,41 @@ jobs:
               --follow false || true
             echo "::endgroup::"
           fi
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+
+      - name: Install dependencies
+        working-directory: web
+        run: bun install --frozen-lockfile
+
+      - name: Build frontend
+        working-directory: web
+        run: bun run build
+
+      - name: Deploy to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@1a947af9992250f3bc2e68ad0754c0b0c11566c9 # v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_FUSE_WEB }}
+          action: upload
+          app_location: web/dist
+          api_location: ""
+          output_location: ""
+          skip_app_build: true
+
+      - name: Verify deployed frontend
+        run: |
+          curl --fail --silent --show-error \
+            --retry 12 \
+            --retry-all-errors \
+            --retry-delay 5 \
+            https://app.teckstate.com/
