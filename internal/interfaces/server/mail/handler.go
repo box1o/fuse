@@ -34,7 +34,16 @@ type SendIssueRequest struct {
 	Body    string `json:"body"`
 }
 
-// POST /mail
+// @Summary		Send an issue email
+// @Description	Sends an issue report to the requested recipient.
+// @Tags			mail
+// @Accept			json
+// @Produce		json
+// @Param			request	body	SendIssueRequest	true	"Email details"
+// @Success		200	{object}	map[string]string
+// @Failure		400	{string}	string
+// @Failure		500	{string}	string
+// @Router			/mail [post]
 func (h *Handler) SendIssueMail(w http.ResponseWriter, r *http.Request) {
 	var req SendIssueRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

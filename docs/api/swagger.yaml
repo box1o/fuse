@@ -1,0 +1,332 @@
+basePath: /
+definitions:
+  fuse_pkg_errors.HTTPError:
+    properties:
+      code:
+        type: string
+      detail:
+        type: string
+      message:
+        type: string
+    type: object
+  internal_interfaces_server_compute.ComputeService:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      status:
+        type: string
+    type: object
+  internal_interfaces_server_health.HealthResponse:
+    properties:
+      services:
+        additionalProperties:
+          type: string
+        type: object
+      status:
+        type: string
+      timestamp:
+        type: string
+      uptime:
+        type: string
+      version:
+        type: string
+    type: object
+  internal_interfaces_server_mail.SendIssueRequest:
+    properties:
+      body:
+        type: string
+      subject:
+        type: string
+      to:
+        type: string
+    type: object
+  internal_interfaces_server_workspace.CreateWorkspaceRequest:
+    properties:
+      name:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: API documentation for the Fuse service.
+  title: Fuse API
+  version: 1.0.0
+paths:
+  /auth/{provider}:
+    get:
+      description: Redirects the client to the selected OAuth provider.
+      parameters:
+      - description: OAuth provider
+        in: path
+        name: provider
+        required: true
+        type: string
+      responses:
+        "302":
+          description: Found
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+      summary: Start OAuth authentication
+      tags:
+      - authentication
+  /auth/{provider}/callback:
+    get:
+      description: Processes the OAuth callback, sets the session cookie, and redirects
+        to the frontend.
+      parameters:
+      - description: OAuth provider
+        in: path
+        name: provider
+        required: true
+        type: string
+      responses:
+        "302":
+          description: Found
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+      summary: Complete OAuth authentication
+      tags:
+      - authentication
+  /auth/logout:
+    post:
+      description: Deletes the current session and clears its cookie.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+      summary: End the current session
+      tags:
+      - authentication
+  /auth/status:
+    get:
+      description: Returns the user associated with the current session cookie.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+      summary: Get the authenticated user
+      tags:
+      - authentication
+  /compute:
+    get:
+      description: Returns the compute services available to the authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/internal_interfaces_server_compute.ComputeService'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+      summary: List compute services
+      tags:
+      - compute
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Get application health status
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_interfaces_server_health.HealthResponse'
+      summary: Health Check
+      tags:
+      - health
+  /mail:
+    post:
+      consumes:
+      - application/json
+      description: Sends an issue report to the requested recipient.
+      parameters:
+      - description: Email details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interfaces_server_mail.SendIssueRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Send an issue email
+      tags:
+      - mail
+  /settings:
+    get:
+      description: Returns settings available to the authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get application settings
+      tags:
+      - settings
+  /uptime:
+    get:
+      consumes:
+      - application/json
+      description: Get application uptime
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Uptime Check
+      tags:
+      - health
+  /workspaces:
+    get:
+      description: Returns every workspace owned by the authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+      summary: List owned workspaces
+      tags:
+      - workspaces
+    post:
+      consumes:
+      - application/json
+      description: Creates a workspace owned by the authenticated user.
+      parameters:
+      - description: Workspace details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interfaces_server_workspace.CreateWorkspaceRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+      summary: Create a workspace
+      tags:
+      - workspaces
+  /workspaces/{workspaceID}:
+    delete:
+      description: Deletes the workspace identified by its ID.
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspaceID
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+      summary: Delete a workspace
+      tags:
+      - workspaces
+swagger: "2.0"

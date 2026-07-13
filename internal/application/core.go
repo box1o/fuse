@@ -13,6 +13,8 @@ import (
 	"fuse/internal/infrastructure/session"
 
 	"fuse/internal/services/auth"
+	computeSvc "fuse/internal/services/compute"
+	deviceAuthSvc "fuse/internal/services/deviceauth"
 	eventsSvc "fuse/internal/services/events"
 	"fuse/internal/services/mail"
 	svcNotification "fuse/internal/services/notification"
@@ -20,11 +22,14 @@ import (
 
 	"fuse/internal/interfaces/server"
 	authH "fuse/internal/interfaces/server/auth"
+	computeH "fuse/internal/interfaces/server/compute"
+	deviceAuthH "fuse/internal/interfaces/server/deviceauth"
 	healthH "fuse/internal/interfaces/server/health"
 	mailH "fuse/internal/interfaces/server/mail"
 	authMW "fuse/internal/interfaces/server/middleware"
 	wsH "fuse/internal/interfaces/server/workspace"
 
+	"fuse/internal/domain/compute"
 	"fuse/internal/domain/user"
 	"fuse/internal/domain/workspace"
 )
@@ -44,21 +49,27 @@ type Application struct {
 	// Repositories
 	userRepo      user.Repository
 	workspaceRepo workspace.Repository
+	computeRepo   compute.Repository
 
 	// Services
 	authSvc         *auth.Service
 	workspaceSvc    *svcWorkspace.Service
 	mailSvc         *mail.Service
 	notificationSvc *svcNotification.Service
+	computeSvc      *computeSvc.Service
+	deviceAuthSvc   *deviceAuthSvc.Service
 
 	// Middleware
 	authMW *authMW.AuthMiddleware
+	cliMW  *authMW.CLIMiddleware
 
 	// Handlers
-	healthHandler    *healthH.Handler
-	authHandler      *authH.Handler
-	workspaceHandler *wsH.Handler
-	mailHandler      *mailH.Handler
+	healthHandler     *healthH.Handler
+	authHandler       *authH.Handler
+	workspaceHandler  *wsH.Handler
+	computeHandler    *computeH.Handler
+	deviceAuthHandler *deviceAuthH.Handler
+	mailHandler       *mailH.Handler
 }
 
 func NewApplication() (*Application, error) {

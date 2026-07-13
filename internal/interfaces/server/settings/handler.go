@@ -26,6 +26,13 @@ func (h *Handler) RegisterRoutes(r chi.Router, authMiddleware *middleware.AuthMi
 	})
 }
 
+// @Summary		Get application settings
+// @Description	Returns settings available to the authenticated user.
+// @Tags			settings
+// @Produce		json
+// @Success		200	{object}	map[string]interface{}
+// @Failure		401	{object}	map[string]string
+// @Router			/settings [get]
 func (h *Handler) GetSettings(w http.ResponseWriter, r *http.Request) {
 	// userID := middleware.GetUserIDFromContext(r.Context())
 	// if userID == uuid.Nil {

@@ -1,6 +1,6 @@
 import { ErrorBoundary } from "@/shared/components";
 import { ROUTES } from "@/shared/constants/routes.constants";
-import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { Layout } from "./layout";
 import { CommandBoundary } from "./boundary";
 import { AuthProtected } from "@/features/auth/protected";
@@ -17,20 +17,6 @@ export const router = createBrowserRouter([
                         element: <Layout />,
                         children: [
                             {
-                                path: ROUTES.EDITOR,
-                                element: <Outlet />, //NOTE: groups /editor and /editor/:id
-                                children: [
-                                    {
-                                        index: true,
-                                        lazy: () => import("@/features/editor/editor.page"),
-                                    },
-                                    {
-                                        path: ":id",
-                                        lazy: () => import("@/features/editor/editor.page"),
-                                    },
-                                ],
-                            },
-                            {
                                 path: ROUTES.DOCUMENTATION,
                                 lazy: () => import("@/features/docs/docs.page"),
                             },
@@ -43,6 +29,10 @@ export const router = createBrowserRouter([
                                 lazy: () => import("@/features/workspace/workspace.page"),
                             },
                             {
+                                path: ROUTES.COMPUTE,
+                                lazy: () => import("@/features/compute/compute.page"),
+                            },
+                            {
                                 path: ROUTES.SETTINGS,
                                 lazy: () => import("@/features/settings/settings.page"),
                             },
@@ -53,6 +43,10 @@ export const router = createBrowserRouter([
             {
                 path: ROUTES.AUTH,
                 lazy: () => import("@/features/auth/auth.page"),
+            },
+            {
+                path: ROUTES.DEVICE,
+                lazy: () => import("@/features/device/device.page"),
             },
             {
                 path: "*",

@@ -1,9 +1,8 @@
-// export * from "./components";
-// export * from "./constants";
-// export * from "./hooks";
-// export * from "./services";
-// export * from "./store";
-// export * from "./types";
-// export * from "./utils";
-// export { Component as WorkspacePage } from "./compute.page";
-// export { default as WorkspaceMain } from "./main";
+export * from "./components";
+export * from "./constants";
+export * from "./hooks";
+export * from "./services";
+export * from "./types";
+export * from "./utils";
+export { Component as ComputePage } from "./compute.page";
+export { default as ComputeMain } from "./main";

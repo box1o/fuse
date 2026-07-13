@@ -7,6 +7,7 @@ import (
 	"fuse/pkg/errors"
 	"fuse/pkg/log"
 	"net/http"
+	"strings"
 
 	"fuse/internal/services/auth"
 
@@ -35,6 +36,13 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 	})
 }
 
+// @Summary		Start OAuth authentication
+// @Description	Redirects the client to the selected OAuth provider.
+// @Tags			authentication
+// @Param			provider	path	string	true	"OAuth provider"
+// @Success		302
+// @Failure		400	{object}	errors.HTTPError
+// @Router			/auth/{provider} [get]
 func (h *Handler) BeginAuth(w http.ResponseWriter, r *http.Request) {
 	provider := chi.URLParam(r, "provider")
 	if provider == "" {
@@ -42,10 +50,24 @@ func (h *Handler) BeginAuth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	r = r.WithContext(context.WithValue(r.Context(), gothic.ProviderParamKey, provider))
+	if returnTo := strings.TrimSpace(r.URL.Query().Get("return_to")); returnTo != "" && strings.HasPrefix(returnTo, strings.TrimRight(h.cfg.Frontend.URL, "/")+"/") {
+		http.SetCookie(w, &http.Cookie{
+			Name: "fuse_auth_return_to", Value: returnTo, Path: "/", MaxAge: 600,
+			Secure: h.cfg.Session.Cookie.Secure, HttpOnly: true, SameSite: http.SameSiteLaxMode,
+		})
+	}
 
 	gothic.BeginAuthHandler(w, r)
 }
 
+// @Summary		Complete OAuth authentication
+// @Description	Processes the OAuth callback, sets the session cookie, and redirects to the frontend.
+// @Tags			authentication
+// @Param			provider	path	string	true	"OAuth provider"
+// @Success		302
+// @Failure		400	{object}	errors.HTTPError
+// @Failure		401	{object}	errors.HTTPError
+// @Router			/auth/{provider}/callback [get]
 func (h *Handler) AuthCallback(w http.ResponseWriter, r *http.Request) {
 	provider := chi.URLParam(r, "provider")
 
@@ -70,12 +92,22 @@ func (h *Handler) AuthCallback(w http.ResponseWriter, r *http.Request) {
 
 	h.setSessionCookie(w, sid)
 
-	//redirect to frontend
-	http.Redirect(w, r, h.cfg.Frontend.URL, http.StatusFound)
+	redirectURL := h.cfg.Frontend.URL
+	if cookie, cookieErr := r.Cookie("fuse_auth_return_to"); cookieErr == nil && strings.HasPrefix(cookie.Value, strings.TrimRight(h.cfg.Frontend.URL, "/")+"/") {
+		redirectURL = cookie.Value
+		http.SetCookie(w, &http.Cookie{Name: "fuse_auth_return_to", Value: "", Path: "/", MaxAge: -1, Secure: h.cfg.Session.Cookie.Secure, HttpOnly: true})
+	}
+	http.Redirect(w, r, redirectURL, http.StatusFound)
 
 }
 
-// GetAuthStatus
+// @Summary		Get the authenticated user
+// @Description	Returns the user associated with the current session cookie.
+// @Tags			authentication
+// @Produce		json
+// @Success		200	{object}	map[string]interface{}
+// @Failure		401	{object}	errors.HTTPError
+// @Router			/auth/status [get]
 func (h *Handler) GetAuthStatus(w http.ResponseWriter, r *http.Request) {
 	sessionID := h.getSessionFromCookie(r)
 	if sessionID == "" {
@@ -97,6 +129,14 @@ func (h *Handler) GetAuthStatus(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// @Summary		End the current session
+// @Description	Deletes the current session and clears its cookie.
+// @Tags			authentication
+// @Produce		json
+// @Success		200	{object}	map[string]string
+// @Failure		401	{object}	errors.HTTPError
+// @Failure		500	{object}	errors.HTTPError
+// @Router			/auth/logout [post]
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	sessionID := h.getSessionFromCookie(r)
 	if sessionID == "" {

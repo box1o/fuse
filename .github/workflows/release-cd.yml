@@ -2,6 +2,11 @@ name: Publish Release
 
 on:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "GitHub Release tag, for example v0.1.0. Leave empty for an automatic build tag."
+        required: false
+        type: string
   push:
     branches:
       - release
@@ -19,11 +24,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     permissions:
-      contents: read
+      contents: write
       id-token: write
     env:
       AZURE_CORE_OUTPUT: none
       IMAGE: ${{ vars.AZURE_ACR_LOGIN_SERVER }}/fuse-api:sha-${{ github.sha }}
+      RELEASE_TAG: ${{ inputs.release_tag || format('v0.1.0-build.{0}', github.run_number) }}
 
     steps:
       - name: Check out repository
@@ -150,6 +156,40 @@ jobs:
             --type console \
             --tail 50 \
             --follow false
+
+      - name: Build Fuse CLI release binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p dist
+          for arch in amd64 arm64; do
+            GOOS=linux GOARCH="$arch" go build \
+              -trimpath \
+              -ldflags="-s -w" \
+              -o "dist/fuse-linux-$arch" \
+              ./cli/cmd/fuse
+          done
+          sha256sum dist/fuse-linux-* > dist/checksums.txt
+
+      - name: Publish CLI GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" dist/fuse-linux-amd64 dist/fuse-linux-arm64 dist/checksums.txt --clobber
+          else
+            gh release create "$RELEASE_TAG" \
+              dist/fuse-linux-amd64 \
+              dist/fuse-linux-arm64 \
+              dist/checksums.txt \
+              --target "$GITHUB_SHA" \
+              --title "Fuse CLI $RELEASE_TAG" \
+              --generate-notes
+          fi
 
       - name: Print failure diagnostics
         if: ${{ failure() }}
