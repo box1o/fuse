@@ -63,3 +63,8 @@ same_site = "lax"
 from = "alexei"
 password = "1234"
 name = "Alexei"
+
+[compute.price]
+cpu = "1.0"
+gpu = "1.5"
+npu = "2.0"

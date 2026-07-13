@@ -11,8 +11,9 @@ type Config struct {
 	Auth        AuthConfig     `mapstructure:"auth" validate:"required"`
 	Session     SessionConfig  `mapstructure:"session" validate:"required"`
 	Frontend    FrontendConfig `mapstructure:"frontend" validate:"required"`
-
-	Mail MailConfig `mapstructure:"mail" `
+	Compute     ComputeConfig  `mapstructure:"compute" validate:"required"`
+	Stripe      StripeConfig   `mapstructure:"stripe" validate:"required"`
+	Mail        MailConfig     `mapstructure:"mail" `
 }
 
 type ServerConfig struct {
@@ -85,4 +86,22 @@ type MailConfig struct {
 	From     string `mapstructure:"from" `
 	Password string `mapstructure:"password" `
 	Name     string `mapstructure:"name" `
+}
+
+type ComputeConfig struct {
+	Price PriceConfig `mapstructure:"price" validate:"required"`
+}
+
+type PriceConfig struct {
+	CPUHourlyCents int64 `mapstructure:"cpu_hourly_cents" validate:"required,min=1"`
+	GPUHourlyCents int64 `mapstructure:"gpu_hourly_cents" validate:"required,min=1"`
+	NPUHourlyCents int64 `mapstructure:"npu_hourly_cents" validate:"required,min=1"`
+}
+
+type StripeConfig struct {
+	SecretKey     string `mapstructure:"secret_key" validate:"required"`
+	WebhookSecret string `mapstructure:"webhook_secret" validate:"required"`
+	CPUPriceID    string `mapstructure:"cpu_price_id" validate:"required"`
+	GPUPriceID    string `mapstructure:"gpu_price_id" validate:"required"`
+	NPUPriceID    string `mapstructure:"npu_price_id" validate:"required"`
 }
