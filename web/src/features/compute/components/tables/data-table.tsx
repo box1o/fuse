@@ -2,6 +2,7 @@ import * as React from "react";
 import {
     type ColumnDef,
     type ColumnFiltersState,
+    type Table as ReactTable,
     type VisibilityState,
     flexRender,
     getCoreRowModel,
@@ -16,9 +17,10 @@ interface DataTableProps<TData, TValue> {
     data: TData[];
     globalFilter?: string;
     onGlobalFilterChange?: (value: string) => void;
-    onTableReady?: (table: any) => void;
+    onTableReady?: (table: ReactTable<TData>) => void;
     onRowClick?: (row: TData) => void;
     loading?: boolean;
+    emptyMessage?: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -29,6 +31,7 @@ export function DataTable<TData, TValue>({
     onTableReady,
     onRowClick,
     loading,
+    emptyMessage = "No results.",
 }: DataTableProps<TData, TValue>) {
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -56,7 +59,7 @@ export function DataTable<TData, TValue>({
     }, [table, onTableReady]);
 
     return (
-        <div className="overflow-hidden rounded-md border">
+        <div className="overflow-x-auto rounded-md border">
             <Table>
                 <Table.Header>
                     {table.getHeaderGroups().map((headerGroup) => (
@@ -103,7 +106,7 @@ export function DataTable<TData, TValue>({
                     ) : (
                         <Table.Row>
                             <Table.Cell colSpan={columns.length} className="h-24 text-center">
-                                No results.
+                                {emptyMessage}
                             </Table.Cell>
                         </Table.Row>
                     )}

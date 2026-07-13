@@ -1,1 +1,15 @@
-export type { ComputeService } from "./workspace.types";
+export type {
+    Accelerator,
+    ComputeCapabilities,
+    ComputeNode,
+    ComputeNodeAvailability,
+    ComputeNodeFilter,
+    ComputeNodeStatus,
+    ContainerRuntime,
+    CPUCapabilities,
+    MemoryCapabilities,
+    OperatingSystem,
+    RegisterComputeNodeRequest,
+    StorageCapabilities,
+    UpdateComputeNodeRequest,
+} from "./compute.types";

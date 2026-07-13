@@ -1,1 +1,1 @@
-export * from "./workspace.constants";
+export * from "./compute.constants";

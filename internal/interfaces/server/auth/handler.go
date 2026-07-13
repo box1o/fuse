@@ -7,6 +7,7 @@ import (
 	"fuse/pkg/errors"
 	"fuse/pkg/log"
 	"net/http"
+	"strings"
 
 	"fuse/internal/services/auth"
 
@@ -49,6 +50,12 @@ func (h *Handler) BeginAuth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	r = r.WithContext(context.WithValue(r.Context(), gothic.ProviderParamKey, provider))
+	if returnTo := strings.TrimSpace(r.URL.Query().Get("return_to")); returnTo != "" && strings.HasPrefix(returnTo, strings.TrimRight(h.cfg.Frontend.URL, "/")+"/") {
+		http.SetCookie(w, &http.Cookie{
+			Name: "fuse_auth_return_to", Value: returnTo, Path: "/", MaxAge: 600,
+			Secure: h.cfg.Session.Cookie.Secure, HttpOnly: true, SameSite: http.SameSiteLaxMode,
+		})
+	}
 
 	gothic.BeginAuthHandler(w, r)
 }
@@ -85,8 +92,12 @@ func (h *Handler) AuthCallback(w http.ResponseWriter, r *http.Request) {
 
 	h.setSessionCookie(w, sid)
 
-	//redirect to frontend
-	http.Redirect(w, r, h.cfg.Frontend.URL, http.StatusFound)
+	redirectURL := h.cfg.Frontend.URL
+	if cookie, cookieErr := r.Cookie("fuse_auth_return_to"); cookieErr == nil && strings.HasPrefix(cookie.Value, strings.TrimRight(h.cfg.Frontend.URL, "/")+"/") {
+		redirectURL = cookie.Value
+		http.SetCookie(w, &http.Cookie{Name: "fuse_auth_return_to", Value: "", Path: "/", MaxAge: -1, Secure: h.cfg.Session.Cookie.Secure, HttpOnly: true})
+	}
+	http.Redirect(w, r, redirectURL, http.StatusFound)
 
 }
 

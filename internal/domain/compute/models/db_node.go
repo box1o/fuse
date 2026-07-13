@@ -1,7 +1,9 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
+	"time"
 
 	"fuse/internal/domain/compute"
 	"fuse/internal/infrastructure/db"
@@ -9,140 +11,98 @@ import (
 	"github.com/google/uuid"
 )
 
-// DBNode is the database representation of a compute node.
 type DBNode struct {
 	db.Model
 
-	Name     string `gorm:"not null;size:255" json:"name"`
-	OwnerID  string `gorm:"not null;size:36;index" json:"owner_id"`
-	NodeType string `gorm:"not null;size:20" json:"node_type"`
-	Status   string `gorm:"not null;default:'pending';size:20" json:"status"`
-
-	ComputeStacks []DBComputeStack `gorm:"many2many:compute_stack_nodes;" json:"compute_stacks,omitempty"`
+	OwnerID        string          `gorm:"not null;size:36;uniqueIndex:idx_compute_owner_installation"`
+	InstallationID string          `gorm:"not null;size:36;uniqueIndex:idx_compute_owner_installation"`
+	Name           string          `gorm:"not null;size:255"`
+	Hostname       string          `gorm:"not null;size:255"`
+	AgentVersion   string          `gorm:"not null;size:64"`
+	Status         string          `gorm:"not null;size:32;default:'registered'"`
+	Capabilities   json.RawMessage `gorm:"type:jsonb;not null"`
+	RegisteredAt   time.Time       `gorm:"not null"`
 }
 
-func (DBNode) TableName() string {
-	return "nodes"
+type DBCLICredential struct {
+	db.Model
+
+	OwnerID    string    `gorm:"not null;size:36;index"`
+	Name       string    `gorm:"not null;size:255"`
+	TokenHash  string    `gorm:"not null;size:64;uniqueIndex"`
+	ExpiresAt  time.Time `gorm:"not null;index"`
+	LastUsedAt *time.Time
+	RevokedAt  *time.Time `gorm:"index"`
 }
 
-func FromDomainNode(node *compute.Node) *DBNode {
-	if node == nil {
+func (DBCLICredential) TableName() string { return "compute_cli_credentials" }
+
+func FromDomainCredential(credential *compute.CLICredential) *DBCLICredential {
+	if credential == nil {
 		return nil
 	}
-
-	return &DBNode{
-		Model: db.Model{
-			ID:        node.ID,
-			CreatedAt: node.CreatedAt,
-			UpdatedAt: node.UpdatedAt,
-		},
-		Name:     node.Name,
-		OwnerID:  node.OwnerID.String(),
-		NodeType: string(node.NodeType),
-		Status:   string(node.Status),
+	return &DBCLICredential{
+		Model:   db.Model{ID: credential.ID, CreatedAt: credential.CreatedAt, UpdatedAt: credential.UpdatedAt},
+		OwnerID: credential.OwnerID.String(), Name: credential.Name, TokenHash: credential.TokenHash,
+		ExpiresAt: credential.ExpiresAt, LastUsedAt: credential.LastUsedAt, RevokedAt: credential.RevokedAt,
 	}
 }
 
-// ToDomain converts a database node into a domain node.
-// It returns an error instead of panicking when OwnerID is invalid.
-func (d *DBNode) ToDomain() (*compute.Node, error) {
-	if d == nil {
-		return nil, nil
-	}
-
+func (d *DBCLICredential) ToDomain() (*compute.CLICredential, error) {
 	ownerID, err := uuid.Parse(d.OwnerID)
 	if err != nil {
-		return nil, fmt.Errorf("parse node owner ID %q: %w", d.OwnerID, err)
+		return nil, fmt.Errorf("parse credential owner ID: %w", err)
 	}
-
-	return &compute.Node{
-		ID:        d.ID,
-		Name:      d.Name,
-		OwnerID:   ownerID,
-		NodeType:  compute.NodeType(d.NodeType),
-		Status:    compute.Status(d.Status),
-		CreatedAt: d.CreatedAt,
-		UpdatedAt: d.UpdatedAt,
+	return &compute.CLICredential{
+		ID: d.ID, OwnerID: ownerID, Name: d.Name, TokenHash: d.TokenHash,
+		ExpiresAt: d.ExpiresAt, LastUsedAt: d.LastUsedAt, RevokedAt: d.RevokedAt,
+		CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt,
 	}, nil
 }
 
-// DBComputeStack is the database representation of a compute stack.
-type DBComputeStack struct {
-	db.Model
+func (DBNode) TableName() string { return "compute_nodes" }
 
-	Name    string `gorm:"not null;size:255" json:"name"`
-	OwnerID string `gorm:"not null;size:36;index" json:"owner_id"`
-
-	Nodes []DBNode `gorm:"many2many:compute_stack_nodes;" json:"nodes"`
-}
-
-func (DBComputeStack) TableName() string {
-	return "compute_stacks"
-}
-
-func FromDomainComputeStack(stack *compute.ComputeStack) *DBComputeStack {
-	if stack == nil {
-		return nil
+func FromDomainNode(node *compute.Node) (*DBNode, error) {
+	if node == nil {
+		return nil, compute.ErrInvalidNode
 	}
 
-	nodes := make([]DBNode, 0, len(stack.Nodes))
-
-	for i := range stack.Nodes {
-		dbNode := FromDomainNode(&stack.Nodes[i])
-		if dbNode != nil {
-			nodes = append(nodes, *dbNode)
-		}
+	capabilities, err := json.Marshal(node.Capabilities)
+	if err != nil {
+		return nil, fmt.Errorf("marshal compute capabilities: %w", err)
 	}
 
-	return &DBComputeStack{
-		Model: db.Model{
-			ID:        stack.ID,
-			CreatedAt: stack.CreatedAt,
-			UpdatedAt: stack.UpdatedAt,
-		},
-		Name:    stack.Name,
-		OwnerID: stack.OwnerID.String(),
-		Nodes:   nodes,
-	}
+	return &DBNode{
+		Model:   db.Model{ID: node.ID, CreatedAt: node.CreatedAt, UpdatedAt: node.UpdatedAt},
+		OwnerID: node.OwnerID.String(), InstallationID: node.InstallationID.String(),
+		Name: node.Name, Hostname: node.Hostname, AgentVersion: node.AgentVersion,
+		Status: string(node.Status), Capabilities: capabilities, RegisteredAt: node.RegisteredAt,
+	}, nil
 }
 
-func (d *DBComputeStack) ToDomain() (*compute.ComputeStack, error) {
+func (d *DBNode) ToDomain() (*compute.Node, error) {
 	if d == nil {
-		return nil, nil
+		return nil, compute.ErrInvalidNode
 	}
 
 	ownerID, err := uuid.Parse(d.OwnerID)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"parse compute stack owner ID %q: %w",
-			d.OwnerID,
-			err,
-		)
+		return nil, fmt.Errorf("parse compute owner ID: %w", err)
+	}
+	installationID, err := uuid.Parse(d.InstallationID)
+	if err != nil {
+		return nil, fmt.Errorf("parse compute installation ID: %w", err)
 	}
 
-	nodes := make([]compute.Node, 0, len(d.Nodes))
-
-	for i := range d.Nodes {
-		node, err := d.Nodes[i].ToDomain()
-		if err != nil {
-			return nil, fmt.Errorf(
-				"convert node %s to domain: %w",
-				d.Nodes[i].ID,
-				err,
-			)
-		}
-
-		if node != nil {
-			nodes = append(nodes, *node)
-		}
+	var capabilities compute.Capabilities
+	if err := json.Unmarshal(d.Capabilities, &capabilities); err != nil {
+		return nil, fmt.Errorf("unmarshal compute capabilities: %w", err)
 	}
 
-	return &compute.ComputeStack{
-		ID:        d.ID,
-		Name:      d.Name,
-		OwnerID:   ownerID,
-		Nodes:     nodes,
-		CreatedAt: d.CreatedAt,
-		UpdatedAt: d.UpdatedAt,
+	return &compute.Node{
+		ID: d.ID, OwnerID: ownerID, InstallationID: installationID,
+		Name: d.Name, Hostname: d.Hostname, AgentVersion: d.AgentVersion,
+		Status: compute.Status(d.Status), Capabilities: capabilities,
+		RegisteredAt: d.RegisteredAt, CreatedAt: d.CreatedAt, UpdatedAt: d.UpdatedAt,
 	}, nil
 }

@@ -3,6 +3,7 @@ package application
 import (
 	authH "fuse/internal/interfaces/server/auth"
 	computeH "fuse/internal/interfaces/server/compute"
+	deviceAuthH "fuse/internal/interfaces/server/deviceauth"
 	healthH "fuse/internal/interfaces/server/health"
 	mailH "fuse/internal/interfaces/server/mail"
 	authMW "fuse/internal/interfaces/server/middleware"
@@ -15,9 +16,11 @@ import (
 func (a *Application) setupHandlers() error {
 	a.healthHandler = healthH.NewHandler(a.cfg)
 	a.authMW = authMW.NewAuthMiddleware(a.authSvc, a.cfg)
+	a.cliMW = authMW.NewCLIMiddleware(a.computeSvc)
 	a.authHandler = authH.NewHandler(a.authSvc, a.cfg)
 	a.workspaceHandler = wsH.NewHandler(a.workspaceSvc, a.cfg)
-	a.computeHandler = computeH.NewHandler(a.cfg)
+	a.computeHandler = computeH.NewHandler(a.computeSvc, a.cliMW)
+	a.deviceAuthHandler = deviceAuthH.NewHandler(a.deviceAuthSvc, a.computeSvc, a.cliMW)
 	a.mailHandler = mailH.NewHandler(a.cfg, a.mailSvc)
 	return nil
 }
@@ -27,6 +30,7 @@ func (a *Application) setupServer() error {
 		server.WithRoutes(func(r chi.Router) {
 			a.healthHandler.RegisterRoutes(r)
 			a.authHandler.RegisterRoutes(r)
+			a.deviceAuthHandler.RegisterRoutes(r, a.authMW)
 			a.workspaceHandler.RegisterRoutes(r, a.authMW)
 			a.computeHandler.RegisterRoutes(r, a.authMW)
 			a.mailHandler.RegisterRoutes(r, a.authMW)

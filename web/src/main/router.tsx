@@ -45,6 +45,10 @@ export const router = createBrowserRouter([
                 lazy: () => import("@/features/auth/auth.page"),
             },
             {
+                path: ROUTES.DEVICE,
+                lazy: () => import("@/features/device/device.page"),
+            },
+            {
                 path: "*",
                 element: <Navigate to={ROUTES.PROJECTS} replace />,
             },

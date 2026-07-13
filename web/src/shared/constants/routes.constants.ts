@@ -5,5 +5,6 @@ const ROUTES = {
     WORKSPACE: "/workspace",
     COMPUTE: "/compute",
     AUTH: "/auth",
+    DEVICE: "/device",
 }
 export { ROUTES }
