@@ -29,6 +29,7 @@ target/
 .env
 .env.local
 .env.*.local
+.env.docker
 
 # Configuration files with secrets
 *.local.toml
@@ -55,7 +56,6 @@ temp/
 
 # Docker
 docker-compose.override.yml
-.dockerignore
 
 # Database files
 *.db

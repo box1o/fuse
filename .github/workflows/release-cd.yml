@@ -1,0 +1,225 @@
+name: Publish Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - release
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fuse-production-release
+  cancel-in-progress: false
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AZURE_CORE_OUTPUT: none
+      IMAGE: ${{ vars.AZURE_ACR_LOGIN_SERVER }}/fuse-api:sha-${{ github.sha }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - name: Set up Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Run tests
+        run: go test ./...
+
+      - name: Run static analysis
+        run: go vet ./...
+
+      - name: Validate Dockerfile
+        run: docker build --check --file Dockerfile .
+
+      - name: Sign in to Azure with OIDC
+        uses: azure/login@2dd0bbf4064d5a1812889dc200bb8eed2597f82a # v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Sign in to Azure Container Registry
+        run: az acr login --name "${{ vars.AZURE_ACR_NAME }}"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4
+
+      - name: Build and push immutable image
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE }}
+            ${{ vars.AZURE_ACR_LOGIN_SERVER }}/fuse-api:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: mode=max
+          sbom: true
+
+      - name: Deploy image to Azure Container Apps
+        id: deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          revision_suffix="r${GITHUB_SHA:0:10}"
+          az containerapp update \
+            --name "${{ vars.AZURE_CONTAINER_APP }}" \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --image "$IMAGE" \
+            --revision-suffix "$revision_suffix" \
+            --output none
+
+          revision=$(az containerapp show \
+            --name "${{ vars.AZURE_CONTAINER_APP }}" \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --query "properties.latestRevisionName" \
+            --output tsv)
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for healthy revision
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          revision="${{ steps.deploy.outputs.revision }}"
+          health_state=""
+          provisioning_state=""
+
+          for _ in {1..30}; do
+            health_state=$(az containerapp revision show \
+              --name "${{ vars.AZURE_CONTAINER_APP }}" \
+              --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+              --revision "$revision" \
+              --query "properties.healthState" \
+              --output tsv 2>/dev/null || true)
+            provisioning_state=$(az containerapp revision show \
+              --name "${{ vars.AZURE_CONTAINER_APP }}" \
+              --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+              --revision "$revision" \
+              --query "properties.provisioningState" \
+              --output tsv 2>/dev/null || true)
+
+            if [[ "$health_state" == "Healthy" && "$provisioning_state" == "Provisioned" ]]; then
+              exit 0
+            fi
+
+            if [[ "$health_state" == "Unhealthy" || "$provisioning_state" == "Failed" ]]; then
+              echo "Revision failed: health=$health_state provisioning=$provisioning_state"
+              exit 1
+            fi
+
+            echo "Waiting for revision: health=${health_state:-pending} provisioning=${provisioning_state:-pending}"
+            sleep 10
+          done
+
+          echo "Revision did not become healthy within five minutes."
+          exit 1
+
+      - name: Check public health endpoint
+        run: |
+          curl --fail --silent --show-error \
+            --retry 12 \
+            --retry-all-errors \
+            --retry-delay 5 \
+            https://mback.teckstate.com/health
+
+      - name: Check deployed application logs
+        env:
+          AZURE_CORE_OUTPUT: json
+        run: |
+          az containerapp logs show \
+            --name "${{ vars.AZURE_CONTAINER_APP }}" \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --revision "${{ steps.deploy.outputs.revision }}" \
+            --type console \
+            --tail 50 \
+            --follow false
+
+      - name: Print failure diagnostics
+        if: ${{ failure() }}
+        env:
+          AZURE_CORE_OUTPUT: json
+        shell: bash
+        run: |
+          echo "::group::Container App state"
+          az containerapp show \
+            --name "${{ vars.AZURE_CONTAINER_APP }}" \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --query "{runningStatus:properties.runningStatus,latestRevision:properties.latestRevisionName,latestReadyRevision:properties.latestReadyRevisionName}" \
+            --output json || true
+          echo "::endgroup::"
+
+          echo "::group::System logs"
+          az containerapp logs show \
+            --name "${{ vars.AZURE_CONTAINER_APP }}" \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --type system \
+            --tail 100 \
+            --follow false || true
+          echo "::endgroup::"
+
+          if [[ -n "${{ steps.deploy.outputs.revision }}" ]]; then
+            echo "::group::Application logs"
+            az containerapp logs show \
+              --name "${{ vars.AZURE_CONTAINER_APP }}" \
+              --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+              --revision "${{ steps.deploy.outputs.revision }}" \
+              --type console \
+              --tail 100 \
+              --follow false || true
+            echo "::endgroup::"
+          fi
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+
+      - name: Install dependencies
+        working-directory: web
+        run: bun install --frozen-lockfile
+
+      - name: Build frontend
+        working-directory: web
+        run: bun run build
+
+      - name: Deploy to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@1a947af9992250f3bc2e68ad0754c0b0c11566c9 # v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_FUSE_WEB }}
+          action: upload
+          app_location: web/dist
+          api_location: ""
+          output_location: ""
+          skip_app_build: true
+
+      - name: Verify deployed frontend
+        run: |
+          curl --fail --silent --show-error \
+            --retry 12 \
+            --retry-all-errors \
+            --retry-delay 5 \
+            https://app.teckstate.com/
