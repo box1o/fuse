@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { useIsMobile } from "@/shared/hooks";
 import { Sheet } from "./sheet";
 import { Button } from "./button";
-import { ChevronRight, CircleChevronRight } from "lucide-react";
+import { ChevronRight} from "lucide-react";
 
 type SidebarProps = React.ComponentProps<"div"> & {
     side?: "left" | "right";

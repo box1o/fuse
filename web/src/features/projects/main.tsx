@@ -1,4 +1,3 @@
-import { useIsMobile } from "@/shared/hooks";
 import { Settings } from "lucide-react";
 import React from "react";
 
