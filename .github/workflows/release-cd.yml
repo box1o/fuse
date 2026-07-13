@@ -1,6 +1,7 @@
-name: Release CI/CD
+name: Publish Release
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - release
