@@ -1,10 +1,4 @@
 {
-  "routes": [
-    {
-      "route": "/favicon.ico",
-      "rewrite": "/vite.svg"
-    }
-  ],
   "navigationFallback": {
     "rewrite": "/index.html",
     "exclude": [
