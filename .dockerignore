@@ -1,0 +1,15 @@
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+.vscode
+.idea
+.agents
+.codex
+bin
+tmp
+web
+**/node_modules
+**/dist
+*.log
