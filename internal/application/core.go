@@ -15,6 +15,7 @@ import (
 	"fuse/internal/services/auth"
 	eventsSvc "fuse/internal/services/events"
 	"fuse/internal/services/mail"
+	paymentsSvc "fuse/internal/services/payments"
 	svcNotification "fuse/internal/services/notification"
 	svcWorkspace "fuse/internal/services/workspace"
 
@@ -22,9 +23,11 @@ import (
 	authH "fuse/internal/interfaces/server/auth"
 	healthH "fuse/internal/interfaces/server/health"
 	mailH "fuse/internal/interfaces/server/mail"
+	paymentsH "fuse/internal/interfaces/server/payments"
 	authMW "fuse/internal/interfaces/server/middleware"
 	wsH "fuse/internal/interfaces/server/workspace"
 
+	"fuse/internal/domain/payments"
 	"fuse/internal/domain/user"
 	"fuse/internal/domain/workspace"
 )
@@ -44,11 +47,13 @@ type Application struct {
 	// Repositories
 	userRepo      user.Repository
 	workspaceRepo workspace.Repository
+	paymentsRepo  payments.Repository
 
 	// Services
 	authSvc         *auth.Service
 	workspaceSvc    *svcWorkspace.Service
 	mailSvc         *mail.Service
+	paymentsSvc     *paymentsSvc.Service
 	notificationSvc *svcNotification.Service
 
 	// Middleware
@@ -59,6 +64,7 @@ type Application struct {
 	authHandler      *authH.Handler
 	workspaceHandler *wsH.Handler
 	mailHandler      *mailH.Handler
+	paymentsHandler  *paymentsH.Handler
 }
 
 func NewApplication() (*Application, error) {

@@ -4,6 +4,7 @@ import (
 	authH "fuse/internal/interfaces/server/auth"
 	healthH "fuse/internal/interfaces/server/health"
 	mailH "fuse/internal/interfaces/server/mail"
+	paymentsH "fuse/internal/interfaces/server/payments"
 	authMW "fuse/internal/interfaces/server/middleware"
 	wsH "fuse/internal/interfaces/server/workspace"
 
@@ -17,6 +18,7 @@ func (a *Application) setupHandlers() error {
 	a.authHandler = authH.NewHandler(a.authSvc, a.cfg)
 	a.workspaceHandler = wsH.NewHandler(a.workspaceSvc, a.cfg)
 	a.mailHandler = mailH.NewHandler(a.cfg, a.mailSvc)
+	a.paymentsHandler = paymentsH.NewHandler(a.cfg, a.paymentsSvc, a.workspaceSvc)
 	return nil
 }
 
@@ -27,6 +29,7 @@ func (a *Application) setupServer() error {
 			a.authHandler.RegisterRoutes(r)
 			a.workspaceHandler.RegisterRoutes(r, a.authMW)
 			a.mailHandler.RegisterRoutes(r, a.authMW)
+			a.paymentsHandler.RegisterRoutes(r, a.authMW)
 		}),
 	}
 	a.srv = server.NewServer(a.cfg, opts...)
