@@ -29,6 +29,7 @@ target/
 .env
 .env.local
 .env.*.local
+.env.docker
 
 # Configuration files with secrets
 *.local.toml

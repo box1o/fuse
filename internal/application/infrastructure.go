@@ -9,6 +9,7 @@ import (
 	"fuse/internal/infrastructure/session"
 	"fuse/pkg/log"
 
+	paymentsM "fuse/internal/domain/payments/models"
 	userM "fuse/internal/domain/user/models"
 	workspaceM "fuse/internal/domain/workspace/models"
 
@@ -26,6 +27,9 @@ func (a *Application) setupDatabase() error {
 			&userM.DBUser{},
 			&workspaceM.DBWorkspace{},
 			&workspaceM.DBMember{},
+			&paymentsM.DBBillingAccount{},
+			&paymentsM.DBUsageRecord{},
+			&paymentsM.DBWebhookEvent{},
 		); err != nil {
 			return fmt.Errorf("migration failed: %w", err)
 		}

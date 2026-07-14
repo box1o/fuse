@@ -1,0 +1,155 @@
+package payments
+
+import "fuse/pkg/errors"
+
+var (
+	ErrWorkspaceIDRequired = errors.New(
+		"PAYMENTS_WORKSPACE_ID_REQUIRED",
+		"workspace ID is required",
+	)
+
+	ErrStripeCustomerIDRequired = errors.New(
+		"PAYMENTS_STRIPE_CUSTOMER_ID_REQUIRED",
+		"Stripe customer ID is required",
+	)
+
+	ErrStripeSubscriptionIDRequired = errors.New(
+		"PAYMENTS_STRIPE_SUBSCRIPTION_ID_REQUIRED",
+		"Stripe subscription ID is required",
+	)
+
+	ErrInvalidSubscriptionStatus = errors.New(
+		"PAYMENTS_INVALID_SUBSCRIPTION_STATUS",
+		"subscription status is invalid",
+	)
+
+	ErrCurrentPeriodStartRequired = errors.New(
+		"PAYMENTS_CURRENT_PERIOD_START_REQUIRED",
+		"subscription current period start is required",
+	)
+
+	ErrCurrentPeriodEndRequired = errors.New(
+		"PAYMENTS_CURRENT_PERIOD_END_REQUIRED",
+		"subscription current period end is required",
+	)
+
+	ErrInvalidSubscriptionPeriod = errors.New(
+		"PAYMENTS_INVALID_SUBSCRIPTION_PERIOD",
+		"subscription period end must be after its start",
+	)
+
+	ErrInvalidResourceType = errors.New(
+		"PAYMENTS_INVALID_RESOURCE_TYPE",
+		"resource type must be cpu, gpu, or npu",
+	)
+
+	ErrInvalidUsageQuantity = errors.New(
+		"PAYMENTS_INVALID_USAGE_QUANTITY",
+		"usage quantity must be greater than zero",
+	)
+
+	ErrOccurredAtRequired = errors.New(
+		"PAYMENTS_OCCURRED_AT_REQUIRED",
+		"usage occurrence time is required",
+	)
+
+	ErrIdempotencyKeyRequired = errors.New(
+		"PAYMENTS_IDEMPOTENCY_KEY_REQUIRED",
+		"usage idempotency key is required",
+	)
+
+	ErrStripeEventIDRequired = errors.New(
+		"PAYMENTS_STRIPE_EVENT_ID_REQUIRED",
+		"Stripe event ID is required",
+	)
+
+	ErrWebhookEventTypeRequired = errors.New(
+		"PAYMENTS_WEBHOOK_EVENT_TYPE_REQUIRED",
+		"webhook event type is required",
+	)
+
+	ErrInvalidUsageRecord = errors.New(
+		"PAYMENTS_INVALID_USAGE_RECORD",
+		"usage record is invalid",
+	)
+
+	ErrUsageAlreadyReported = errors.New(
+		"PAYMENTS_USAGE_ALREADY_REPORTED",
+		"reported usage cannot be changed",
+	)
+
+	ErrInvalidBillingAccount = errors.New(
+		"PAYMENTS_INVALID_BILLING_ACCOUNT",
+		"billing account is invalid",
+	)
+
+	ErrBillingAccountNotFound = errors.New(
+		"PAYMENTS_BILLING_ACCOUNT_NOT_FOUND",
+		"billing account was not found",
+	)
+
+	ErrBillingAccountAlreadyExists = errors.New(
+		"PAYMENTS_BILLING_ACCOUNT_ALREADY_EXISTS",
+		"billing account already exists",
+	)
+
+	ErrCreateBillingAccountFailed = errors.New(
+		"PAYMENTS_CREATE_BILLING_ACCOUNT_FAILED",
+		"failed to create billing account",
+	)
+
+	ErrSubscriptionNotFound = errors.New(
+		"PAYMENTS_SUBSCRIPTION_NOT_FOUND",
+		"subscription was not found",
+	)
+
+	ErrUpsertSubscriptionFailed = errors.New(
+		"PAYMENTS_UPSERT_SUBSCRIPTION_FAILED",
+		"failed to save subscription",
+	)
+
+	ErrUsageRecordNotFound = errors.New(
+		"PAYMENTS_USAGE_RECORD_NOT_FOUND",
+		"usage record was not found",
+	)
+
+	ErrCreateUsageRecordFailed = errors.New(
+		"PAYMENTS_CREATE_USAGE_RECORD_FAILED",
+		"failed to create usage record",
+	)
+
+	ErrUpdateUsageRecordFailed = errors.New(
+		"PAYMENTS_UPDATE_USAGE_RECORD_FAILED",
+		"failed to update usage record",
+	)
+
+	ErrIdempotencyKeyAlreadyExists = errors.New(
+		"PAYMENTS_IDEMPOTENCY_KEY_ALREADY_EXISTS",
+		"usage record idempotency key already exists",
+	)
+
+	ErrInvalidWebhookEvent = errors.New(
+		"PAYMENTS_INVALID_WEBHOOK_EVENT",
+		"webhook event is invalid",
+	)
+
+	ErrWebhookEventAlreadyProcessed = errors.New(
+		"PAYMENTS_WEBHOOK_EVENT_ALREADY_PROCESSED",
+		"webhook event was already processed",
+	)
+
+	ErrCreateWebhookEventFailed = errors.New(
+		"PAYMENTS_CREATE_WEBHOOK_EVENT_FAILED",
+		"failed to store webhook event",
+	)
+
+	ErrDatabaseOperation = errors.New(
+		"PAYMENTS_DATABASE_OPERATION_FAILED",
+		"payment database operation failed",
+	)
+
+	ErrInvalidSubscription = errors.New(
+		"PAYMENTS_INVALID_SUBSCRIPTION",
+		"subscription is invalid",
+	)
+)
