@@ -28,6 +28,7 @@ func (a *Application) setupDatabase() error {
 			&workspaceM.DBWorkspace{},
 			&workspaceM.DBMember{},
 			&paymentsM.DBBillingAccount{},
+			&paymentsM.DBSubscription{},
 			&paymentsM.DBUsageRecord{},
 			&paymentsM.DBWebhookEvent{},
 		); err != nil {

@@ -1,5 +1,6 @@
 const ROUTES = {
     PROJECTS: "/projects",
+    PAYMENTS: "/payments",
     DOCUMENTATION: "/docs",
     EDITOR: "/editor",
     SETTINGS: "/settings",

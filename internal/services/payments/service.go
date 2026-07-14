@@ -100,8 +100,8 @@ func (s *Service) CreateCheckoutSession(
 		Customer:   stripe.String(customerID),
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			{
-				Price:    stripe.String(priceID),
-				Quantity: stripe.Int64(1),
+				Price: stripe.String(priceID),
+				// Metered subscription prices must not send quantity in Checkout.
 			},
 		},
 		Metadata: map[string]string{

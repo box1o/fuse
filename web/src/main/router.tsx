@@ -36,7 +36,11 @@ export const router = createBrowserRouter([
                             },
                             {
                                 path: ROUTES.PROJECTS,
-                                lazy: () => import("@/features/projects/projects.page"),
+                                lazy: () => import("@/features/payments/payments.page"),
+                            },
+                            {
+                                path: ROUTES.PAYMENTS,
+                                lazy: () => import("@/features/payments/payments.page"),
                             },
                             {
                                 path: ROUTES.WORKSPACE,

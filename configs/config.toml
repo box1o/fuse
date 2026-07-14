@@ -70,7 +70,7 @@ gpu_hourly_cents = 150
 npu_hourly_cents = 200
 
 [stripe]
-secret_key = "sk_test_placeholder"
+secret_key = "sk_placeholder"
 webhook_secret = "whsec_placeholder"
 cpu_price_id = "price_cpu_placeholder"
 gpu_price_id = "price_gpu_placeholder"

@@ -1,5 +1,4 @@
 import { QueryClientProvider } from "@tanstack/react-query"
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
 import { client } from "@/shared/services"
 import { Toaster } from "sonner"
 import { ThemeProvider } from "@/shared/components"
