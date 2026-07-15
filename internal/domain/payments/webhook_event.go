@@ -11,10 +11,7 @@ type WebhookEvent struct {
 	ProcessedAt   time.Time `json:"processed_at"`
 }
 
-func NewWebhookEvent(
-	stripeEventID string,
-	eventType string,
-) (*WebhookEvent, error) {
+func NewWebhookEvent(stripeEventID string, eventType string) (*WebhookEvent, error) {
 	stripeEventID = strings.TrimSpace(stripeEventID)
 	if stripeEventID == "" {
 		return nil, ErrStripeEventIDRequired
