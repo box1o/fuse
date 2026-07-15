@@ -3,4 +3,9 @@ export type {
     CheckoutSessionResponse,
     ProjectUsageRequest,
     WebhookRequest,
+    SubscriptionPlan,
+    SubscriptionPlanId,
+    SubscriptionStatus,
+    CreditBalance,
+    ResourceType,
 } from "./payments.types";
