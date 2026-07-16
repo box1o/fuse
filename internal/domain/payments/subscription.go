@@ -38,7 +38,7 @@ func (s SubscriptionStatus) IsValid() bool {
 
 type Subscription struct {
 	ID                   uuid.UUID          `json:"id"`
-	WorkspaceID          uuid.UUID          `json:"workspace_id"`
+	UserID               uuid.UUID          `json:"user_id"`
 	StripeSubscriptionID string             `json:"stripe_subscription_id"`
 	Status               SubscriptionStatus `json:"status"`
 	CurrentPeriodStart   time.Time          `json:"current_period_start"`
@@ -49,15 +49,15 @@ type Subscription struct {
 }
 
 func NewSubscription(
-	workspaceID uuid.UUID,
+	userID uuid.UUID,
 	stripeSubscriptionID string,
 	status SubscriptionStatus,
 	currentPeriodStart time.Time,
 	currentPeriodEnd time.Time,
 	cancelAtPeriodEnd bool,
 ) (*Subscription, error) {
-	if workspaceID == uuid.Nil {
-		return nil, ErrWorkspaceIDRequired
+	if userID == uuid.Nil {
+		return nil, ErrUserIDRequired
 	}
 
 	stripeSubscriptionID = strings.TrimSpace(stripeSubscriptionID)
@@ -85,7 +85,7 @@ func NewSubscription(
 
 	return &Subscription{
 		ID:                   uuid.New(),
-		WorkspaceID:          workspaceID,
+		UserID:               userID,
 		StripeSubscriptionID: stripeSubscriptionID,
 		Status:               status,
 		CurrentPeriodStart:   currentPeriodStart.UTC(),

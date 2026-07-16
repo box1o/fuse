@@ -1,7 +1,6 @@
 import type React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button, Header, Profile } from "@/shared/components"
-import { CreditsButton } from "@/features/payments";;
 import { ROUTES } from "@/shared/constants";
 import { Bell } from "lucide-react";
 import ThemeSwitcher from "../theme/theme-switcher";
@@ -43,8 +42,6 @@ const MainHeader: React.FC = () => {
                 </Header.Group> */}
                  <Header.Group className="ml-4 min-w-0">
                     <WorkspaceSelector />
-
-                    <CreditsButton />
 
                     <Button
                         variant="ghost"

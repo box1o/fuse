@@ -7,24 +7,24 @@ import (
 	"github.com/google/uuid"
 )
 
-// BillingAccount associates a workspace with its Stripe customer.
+// BillingAccount associates a user with their Stripe customer.
 //
 // StripeCustomerID is stored as a string so the domain does not depend
 // on Stripe SDK types.
 type BillingAccount struct {
 	ID               uuid.UUID `json:"id"`
-	WorkspaceID      uuid.UUID `json:"workspace_id"`
+	UserID           uuid.UUID `json:"user_id"`
 	StripeCustomerID string    `json:"stripe_customer_id"`
 	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at"`
 }
 
 func NewBillingAccount(
-	workspaceID uuid.UUID,
+	userID uuid.UUID,
 	stripeCustomerID string,
 ) (*BillingAccount, error) {
-	if workspaceID == uuid.Nil {
-		return nil, ErrWorkspaceIDRequired
+	if userID == uuid.Nil {
+		return nil, ErrUserIDRequired
 	}
 
 	stripeCustomerID = strings.TrimSpace(stripeCustomerID)
@@ -36,7 +36,7 @@ func NewBillingAccount(
 
 	return &BillingAccount{
 		ID:               uuid.New(),
-		WorkspaceID:      workspaceID,
+		UserID:           userID,
 		StripeCustomerID: stripeCustomerID,
 		CreatedAt:        now,
 		UpdatedAt:        now,

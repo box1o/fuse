@@ -39,13 +39,13 @@ func NewService(cfg *config.Config, repo domain.Repository) *Service {
 
 func (s *Service) CreateCheckoutSession(
 	ctx context.Context,
-	workspaceID uuid.UUID,
+	userID uuid.UUID,
 	successURL string,
 	cancelURL string,
 	priceID string,
 ) (*CheckoutSessionResult, error) {
-	if workspaceID == uuid.Nil {
-		return nil, domain.ErrWorkspaceIDRequired
+	if userID == uuid.Nil {
+		return nil, domain.ErrUserIDRequired
 	}
 
 	successURL = strings.TrimSpace(successURL)
@@ -63,7 +63,7 @@ func (s *Service) CreateCheckoutSession(
 		return nil, fmt.Errorf("price ID is required")
 	}
 
-	account, err := s.repo.FindBillingAccountByWorkspaceID(ctx, workspaceID)
+	account, err := s.repo.FindBillingAccountByUserID(ctx, userID)
 	if err != nil && !domain.ErrBillingAccountNotFound.Is(err) {
 		return nil, err
 	}
@@ -76,14 +76,14 @@ func (s *Service) CreateCheckoutSession(
 	if customerID == "" {
 		cust, err := customer.New(&stripe.CustomerParams{
 			Metadata: map[string]string{
-				"workspace_id": workspaceID.String(),
+				"user_id": userID.String(),
 			},
 		})
 		if err != nil {
 			return nil, fmt.Errorf("create stripe customer: %w", err)
 		}
 
-		account, err = domain.NewBillingAccount(workspaceID, cust.ID)
+		account, err = domain.NewBillingAccount(userID, cust.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -100,12 +100,12 @@ func (s *Service) CreateCheckoutSession(
 		Customer:   stripe.String(customerID),
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			{
-				Price: stripe.String(priceID),
-				// Metered subscription prices must not send quantity in Checkout.
+				Price:    stripe.String(priceID),
+				Quantity: stripe.Int64(1),
 			},
 		},
 		Metadata: map[string]string{
-			"workspace_id": workspaceID.String(),
+			"user_id": userID.String(),
 		},
 	}
 
@@ -122,13 +122,13 @@ func (s *Service) CreateCheckoutSession(
 
 func (s *Service) RecordUsage(
 	ctx context.Context,
-	workspaceID uuid.UUID,
+	userID uuid.UUID,
 	resourceType domain.ResourceType,
 	quantity int64,
 	occurredAt time.Time,
 	idempotencyKey string,
 ) (*domain.UsageRecord, error) {
-	record, err := domain.NewUsageRecord(workspaceID, resourceType, quantity, occurredAt, idempotencyKey)
+	record, err := domain.NewUsageRecord(userID, resourceType, quantity, occurredAt, idempotencyKey)
 	if err != nil {
 		return nil, err
 	}
@@ -138,8 +138,8 @@ func (s *Service) RecordUsage(
 	return record, nil
 }
 
-func (s *Service) CancelSubscription(ctx context.Context, workspaceID uuid.UUID) error {
-	sub, err := s.repo.FindSubscriptionByWorkspaceID(ctx, workspaceID)
+func (s *Service) CancelSubscription(ctx context.Context, userID uuid.UUID) error {
+	sub, err := s.repo.FindSubscriptionByUserID(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -147,7 +147,7 @@ func (s *Service) CancelSubscription(ctx context.Context, workspaceID uuid.UUID)
 	params := &stripe.SubscriptionParams{
 		CancelAtPeriodEnd: stripe.Bool(true),
 	}
-	params.AddMetadata("workspace_id", workspaceID.String())
+	params.AddMetadata("user_id", userID.String())
 
 	if _, err := subscription.Update(sub.StripeSubscriptionID, params); err != nil {
 		return fmt.Errorf("cancel subscription: %w", err)
@@ -208,15 +208,15 @@ func (s *Service) upsertSubscriptionFromStripe(ctx context.Context, sub *stripe.
 		return domain.ErrInvalidSubscription
 	}
 
-	workspaceIDStr := sub.Metadata["workspace_id"]
-	workspaceID, err := uuid.Parse(workspaceIDStr)
-	if err != nil || workspaceID == uuid.Nil {
-		return fmt.Errorf("subscription missing workspace metadata")
+	userIDStr := sub.Metadata["user_id"]
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil || userID == uuid.Nil {
+		return fmt.Errorf("subscription missing user metadata")
 	}
 
 	status := domain.SubscriptionStatus(sub.Status)
 
-	account, err := s.repo.FindBillingAccountByWorkspaceID(ctx, workspaceID)
+	account, err := s.repo.FindBillingAccountByUserID(ctx, userID)
 	if err != nil && !domain.ErrBillingAccountNotFound.Is(err) {
 		return err
 	}
@@ -238,7 +238,7 @@ func (s *Service) upsertSubscriptionFromStripe(ctx context.Context, sub *stripe.
 	currentPeriodEnd := time.Unix(sub.Items.Data[0].CurrentPeriodEnd, 0).UTC()
 
 	agg, err := domain.NewSubscription(
-		account.WorkspaceID,
+		account.UserID,
 		sub.ID,
 		status,
 		currentPeriodStart,

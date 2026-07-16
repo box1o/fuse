@@ -1,7 +1,6 @@
 package payments
 
 import (
-	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -11,7 +10,6 @@ import (
 	domain "fuse/internal/domain/payments"
 	"fuse/internal/interfaces/server/middleware"
 	service "fuse/internal/services/payments"
-	"fuse/internal/services/workspace"
 	"fuse/pkg/config"
 	"fuse/pkg/errors"
 	"fuse/pkg/log"
@@ -21,13 +19,12 @@ import (
 )
 
 type Handler struct {
-	cfg         *config.Config
-	svc         *service.Service
-	workspaceSvc *workspace.Service
+	cfg *config.Config
+	svc *service.Service
 }
 
-func NewHandler(cfg *config.Config, svc *service.Service, workspaceSvc *workspace.Service) *Handler {
-	return &Handler{cfg: cfg, svc: svc, workspaceSvc: workspaceSvc}
+func NewHandler(cfg *config.Config, svc *service.Service) *Handler {
+	return &Handler{cfg: cfg, svc: svc}
 }
 
 func (h *Handler) RegisterRoutes(r chi.Router, authMiddleware *middleware.AuthMiddleware) {
@@ -42,10 +39,9 @@ func (h *Handler) RegisterRoutes(r chi.Router, authMiddleware *middleware.AuthMi
 }
 
 type checkoutRequest struct {
-	WorkspaceID uuid.UUID `json:"workspace_id"`
-	ResourceType string   `json:"resource_type"`
-	SuccessURL  string    `json:"success_url"`
-	CancelURL   string    `json:"cancel_url"`
+	PlanID     string `json:"plan_id"`
+	SuccessURL string `json:"success_url"`
+	CancelURL  string `json:"cancel_url"`
 }
 
 func (h *Handler) CreateCheckoutSession(w http.ResponseWriter, r *http.Request) {
@@ -55,18 +51,19 @@ func (h *Handler) CreateCheckoutSession(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if err := h.ensureWorkspaceAccess(r.Context(), req.WorkspaceID); err != nil {
-		errors.WriteError(w, err)
+	userID := middleware.GetUserIDFromContext(r.Context())
+	if userID == uuid.Nil {
+		errors.WriteError(w, errors.ErrUnauthorized.WithDetail("user not authenticated"))
 		return
 	}
 
-	priceID, err := h.resolvePriceID(strings.TrimSpace(req.ResourceType))
+	priceID, err := h.resolvePriceID(strings.TrimSpace(req.PlanID))
 	if err != nil {
 		errors.WriteError(w, err)
 		return
 	}
 
-	result, svcErr := h.svc.CreateCheckoutSession(r.Context(), req.WorkspaceID, req.SuccessURL, req.CancelURL, priceID)
+	result, svcErr := h.svc.CreateCheckoutSession(r.Context(), userID, req.SuccessURL, req.CancelURL, priceID)
 	if svcErr != nil {
 		log.Warn("create checkout session failed: %v", svcErr)
 		errors.WriteError(w, errors.ToHTTP(svcErr))
@@ -79,7 +76,6 @@ func (h *Handler) CreateCheckoutSession(w http.ResponseWriter, r *http.Request) 
 }
 
 type usageRequest struct {
-	WorkspaceID    uuid.UUID `json:"workspace_id"`
 	ResourceType   string    `json:"resource_type"`
 	Quantity       int64     `json:"quantity"`
 	OccurredAt     time.Time `json:"occurred_at"`
@@ -93,14 +89,15 @@ func (h *Handler) RecordUsage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.ensureWorkspaceAccess(r.Context(), req.WorkspaceID); err != nil {
-		errors.WriteError(w, err)
+	userID := middleware.GetUserIDFromContext(r.Context())
+	if userID == uuid.Nil {
+		errors.WriteError(w, errors.ErrUnauthorized.WithDetail("user not authenticated"))
 		return
 	}
 
 	record, err := h.svc.RecordUsage(
 		r.Context(),
-		req.WorkspaceID,
+		userID,
 		domain.ResourceType(strings.TrimSpace(req.ResourceType)),
 		req.Quantity,
 		req.OccurredAt,
@@ -117,23 +114,14 @@ func (h *Handler) RecordUsage(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(record)
 }
 
-type cancelRequest struct {
-	WorkspaceID uuid.UUID `json:"workspace_id"`
-}
-
 func (h *Handler) CancelSubscription(w http.ResponseWriter, r *http.Request) {
-	var req cancelRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		errors.WriteError(w, errors.ErrBadRequest.WithDetail("invalid request payload"))
+	userID := middleware.GetUserIDFromContext(r.Context())
+	if userID == uuid.Nil {
+		errors.WriteError(w, errors.ErrUnauthorized.WithDetail("user not authenticated"))
 		return
 	}
 
-	if err := h.ensureWorkspaceAccess(r.Context(), req.WorkspaceID); err != nil {
-		errors.WriteError(w, err)
-		return
-	}
-
-	if err := h.svc.CancelSubscription(r.Context(), req.WorkspaceID); err != nil {
+	if err := h.svc.CancelSubscription(r.Context(), userID); err != nil {
 		log.Warn("cancel subscription failed: %v", err)
 		errors.WriteError(w, errors.ToHTTP(err))
 		return
@@ -166,40 +154,19 @@ func (h *Handler) HandleWebhook(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *Handler) ensureWorkspaceAccess(ctx context.Context, workspaceID uuid.UUID) *errors.HTTPError {
-	if workspaceID == uuid.Nil {
-		return errors.ErrBadRequest.WithDetail("workspace_id is required")
+func (h *Handler) resolvePriceID(planID string) (string, *errors.HTTPError) {
+	if strings.TrimSpace(planID) == "" {
+		return "", errors.ErrBadRequest.WithDetail("plan_id is required")
 	}
 
-	userID := middleware.GetUserIDFromContext(ctx)
-	if userID == uuid.Nil {
-		return errors.ErrUnauthorized.WithDetail("user not authenticated")
+	proPriceID := strings.TrimSpace(h.cfg.Stripe.ProPriceID)
+	if proPriceID == "" {
+		return "", errors.ErrBadRequest.WithDetail("stripe pro price id is not configured")
 	}
 
-	workspaces, err := h.workspaceSvc.GetUserWorkspaces(ctx, userID)
-	if err != nil {
-		log.Warn("workspace lookup failed: %v", err)
-		return errors.ErrInternalServer.WithDetail("failed to verify workspace access")
+	if strings.Contains(strings.ToLower(proPriceID), "placeholder") {
+		return "", errors.ErrBadRequest.WithDetail("stripe pro price id is still a placeholder")
 	}
 
-	for _, ws := range workspaces {
-		if ws != nil && ws.ID == workspaceID {
-			return nil
-		}
-	}
-
-	return errors.ErrForbidden.WithDetail("workspace access denied")
-}
-
-func (h *Handler) resolvePriceID(resourceType string) (string, *errors.HTTPError) {
-	switch resourceType {
-	case "cpu":
-		return h.cfg.Stripe.CPUPriceID, nil
-	case "gpu":
-		return h.cfg.Stripe.GPUPriceID, nil
-	case "npu":
-		return h.cfg.Stripe.NPUPriceID, nil
-	default:
-		return "", errors.ErrBadRequest.WithDetail("invalid resource_type")
-	}
+	return proPriceID, nil
 }

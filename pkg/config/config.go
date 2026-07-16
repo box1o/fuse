@@ -109,6 +109,31 @@ func setupViper() error {
 
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	if err := viper.BindEnv("stripe.secret_key"); err != nil {
+		return fmt.Errorf("failed to bind stripe.secret_key env: %w", err)
+	}
+	if err := viper.BindEnv("stripe.webhook_secret"); err != nil {
+		return fmt.Errorf("failed to bind stripe.webhook_secret env: %w", err)
+	}
+	if err := viper.BindEnv("stripe.cpu_price_id"); err != nil {
+		return fmt.Errorf("failed to bind stripe.cpu_price_id env: %w", err)
+	}
+	if err := viper.BindEnv("stripe.gpu_price_id"); err != nil {
+		return fmt.Errorf("failed to bind stripe.gpu_price_id env: %w", err)
+	}
+	if err := viper.BindEnv("stripe.npu_price_id"); err != nil {
+		return fmt.Errorf("failed to bind stripe.npu_price_id env: %w", err)
+	}
+	if err := viper.BindEnv("stripe.pro_price_id"); err != nil {
+		return fmt.Errorf("failed to bind stripe.pro_price_id env: %w", err)
+	}
+	if err := viper.BindEnv("stripe.fuse_pro_price_id"); err != nil {
+		return fmt.Errorf("failed to bind stripe.fuse_pro_price_id env: %w", err)
+	}
+
+	if alias := strings.TrimSpace(viper.GetString("stripe.fuse_pro_price_id")); alias != "" {
+		viper.Set("stripe.pro_price_id", alias)
+	}
 
 	return nil
 }

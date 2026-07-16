@@ -1,13 +1,12 @@
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { paymentsService } from "../../services";
-import type { CheckoutSessionResponse } from "../../types";
+import type { CheckoutSessionResponse, SubscriptionPlanId } from "../../types";
 import { usePaymentsStore } from "../../store";
 import { PAYMENTS_QUERY_KEYS } from "../../constants";
 
 interface CreateCheckoutRequest {
-    workspaceId: string;
-    resourceType: "cpu" | "gpu" | "npu";
+    planId: SubscriptionPlanId;
     successUrl: string;
     cancelUrl: string;
 }
@@ -18,10 +17,9 @@ export const useCreateCheckoutSession = () => {
     const mutation = useMutation<CheckoutSessionResponse, Error, CreateCheckoutRequest>({
         mutationKey: [PAYMENTS_QUERY_KEYS.CHECKOUT],
         mutationFn: async (request) => {
-            if (!request?.workspaceId) throw new Error("Missing workspace ID");
+            if (!request?.planId) throw new Error("Missing plan ID");
             const response = await paymentsService.createCheckoutSession(
-                request.workspaceId,
-                request.resourceType,
+                request.planId,
                 request.successUrl,
                 request.cancelUrl,
             );

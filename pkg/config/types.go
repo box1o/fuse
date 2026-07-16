@@ -104,4 +104,5 @@ type StripeConfig struct {
 	CPUPriceID    string `mapstructure:"cpu_price_id" validate:"required"`
 	GPUPriceID    string `mapstructure:"gpu_price_id" validate:"required"`
 	NPUPriceID    string `mapstructure:"npu_price_id" validate:"required"`
+	ProPriceID    string `mapstructure:"pro_price_id" validate:"required"`
 }

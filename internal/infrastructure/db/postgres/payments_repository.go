@@ -50,18 +50,18 @@ func (r *PaymentsRepository) CreateBillingAccount(
 	return nil
 }
 
-func (r *PaymentsRepository) FindBillingAccountByWorkspaceID(
+func (r *PaymentsRepository) FindBillingAccountByUserID(
 	ctx context.Context,
-	workspaceID uuid.UUID,
+	userID uuid.UUID,
 ) (*payments.BillingAccount, error) {
-	if workspaceID == uuid.Nil {
-		return nil, payments.ErrWorkspaceIDRequired
+	if userID == uuid.Nil {
+		return nil, payments.ErrUserIDRequired
 	}
 
 	var dbAccount paymentsM.DBBillingAccount
 
 	err := r.db.WithContext(ctx).
-		First(&dbAccount, "workspace_id = ?", workspaceID).
+		First(&dbAccount, "user_id = ?", userID).
 		Error
 
 	if err != nil {
@@ -121,7 +121,7 @@ func (r *PaymentsRepository) UpsertSubscription(
 				{Name: "stripe_subscription_id"},
 			},
 			DoUpdates: clause.AssignmentColumns([]string{
-				"workspace_id",
+				"user_id",
 				"status",
 				"current_period_start",
 				"current_period_end",
@@ -149,12 +149,12 @@ func (r *PaymentsRepository) UpsertSubscription(
 	return nil
 }
 
-func (r *PaymentsRepository) FindSubscriptionByWorkspaceID(
+func (r *PaymentsRepository) FindSubscriptionByUserID(
 	ctx context.Context,
-	workspaceID uuid.UUID,
+	userID uuid.UUID,
 ) (*payments.Subscription, error) {
-	if workspaceID == uuid.Nil {
-		return nil, payments.ErrWorkspaceIDRequired
+	if userID == uuid.Nil {
+		return nil, payments.ErrUserIDRequired
 	}
 
 	var dbSubscription paymentsM.DBSubscription
@@ -163,8 +163,8 @@ func (r *PaymentsRepository) FindSubscriptionByWorkspaceID(
 		Order("updated_at DESC").
 		First(
 			&dbSubscription,
-			"workspace_id = ?",
-			workspaceID,
+			"user_id = ?",
+			userID,
 		).
 		Error
 

@@ -3,7 +3,7 @@ package payments
 import "fuse/pkg/errors"
 
 var (
-	ErrWorkspaceIDRequired          = errors.New("PAYMENTS_WORKSPACE_ID_REQUIRED", "workspace ID is required")
+	ErrUserIDRequired               = errors.New("PAYMENTS_USER_ID_REQUIRED", "user ID is required")
 	ErrStripeCustomerIDRequired     = errors.New("PAYMENTS_STRIPE_CUSTOMER_ID_REQUIRED", "Stripe customer ID is required")
 	ErrStripeSubscriptionIDRequired = errors.New("PAYMENTS_STRIPE_SUBSCRIPTION_ID_REQUIRED", "Stripe subscription ID is required")
 	ErrInvalidSubscriptionStatus    = errors.New("PAYMENTS_INVALID_SUBSCRIPTION_STATUS", "subscription status is invalid")

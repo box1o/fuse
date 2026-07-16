@@ -48,7 +48,7 @@ func (s UsageStatus) IsValid() bool {
 
 type UsageRecord struct {
 	ID             uuid.UUID    `json:"id"`
-	WorkspaceID    uuid.UUID    `json:"workspace_id"`
+	UserID         uuid.UUID    `json:"user_id"`
 	ResourceType   ResourceType `json:"resource_type"`
 	Quantity       int64        `json:"quantity"`
 	OccurredAt     time.Time    `json:"occurred_at"`
@@ -60,14 +60,14 @@ type UsageRecord struct {
 }
 
 func NewUsageRecord(
-	workspaceID uuid.UUID,
+	userID uuid.UUID,
 	resourceType ResourceType,
 	quantity int64,
 	occurredAt time.Time,
 	idempotencyKey string,
 ) (*UsageRecord, error) {
-	if workspaceID == uuid.Nil {
-		return nil, ErrWorkspaceIDRequired
+	if userID == uuid.Nil {
+		return nil, ErrUserIDRequired
 	}
 
 	if !resourceType.IsValid() {
@@ -91,7 +91,7 @@ func NewUsageRecord(
 
 	return &UsageRecord{
 		ID:             uuid.New(),
-		WorkspaceID:    workspaceID,
+		UserID:         userID,
 		ResourceType:   resourceType,
 		Quantity:       quantity,
 		OccurredAt:     occurredAt.UTC(),

@@ -12,7 +12,7 @@ import (
 type DBBillingAccount struct {
 	db.Model
 
-	WorkspaceID      uuid.UUID `gorm:"type:uuid;not null;uniqueIndex"`
+	UserID           uuid.UUID `gorm:"type:uuid;not null;uniqueIndex"`
 	StripeCustomerID string    `gorm:"not null;size:255;uniqueIndex"`
 }
 
@@ -33,7 +33,7 @@ func BillingAccountFromDomain(
 			CreatedAt: account.CreatedAt,
 			UpdatedAt: account.UpdatedAt,
 		},
-		WorkspaceID:      account.WorkspaceID,
+		UserID:           account.UserID,
 		StripeCustomerID: account.StripeCustomerID,
 	}
 }
@@ -45,7 +45,7 @@ func (m *DBBillingAccount) ToDomain() *payments.BillingAccount {
 
 	return &payments.BillingAccount{
 		ID:               m.ID,
-		WorkspaceID:      m.WorkspaceID,
+		UserID:           m.UserID,
 		StripeCustomerID: m.StripeCustomerID,
 		CreatedAt:        m.CreatedAt,
 		UpdatedAt:        m.UpdatedAt,
@@ -55,7 +55,7 @@ func (m *DBBillingAccount) ToDomain() *payments.BillingAccount {
 type DBSubscription struct {
 	db.Model
 
-	WorkspaceID          uuid.UUID `gorm:"type:uuid;not null;uniqueIndex"`
+	UserID               uuid.UUID `gorm:"type:uuid;not null;uniqueIndex"`
 	StripeSubscriptionID string    `gorm:"not null;size:255;uniqueIndex"`
 	Status               string    `gorm:"not null;size:50"`
 	CurrentPeriodStart   time.Time `gorm:"not null"`
@@ -80,7 +80,7 @@ func SubscriptionFromDomain(
 			CreatedAt: subscription.CreatedAt,
 			UpdatedAt: subscription.UpdatedAt,
 		},
-		WorkspaceID:          subscription.WorkspaceID,
+		UserID:               subscription.UserID,
 		StripeSubscriptionID: subscription.StripeSubscriptionID,
 		Status:               string(subscription.Status),
 		CurrentPeriodStart:   subscription.CurrentPeriodStart,
@@ -96,7 +96,7 @@ func (m *DBSubscription) ToDomain() *payments.Subscription {
 
 	return &payments.Subscription{
 		ID:                   m.ID,
-		WorkspaceID:          m.WorkspaceID,
+		UserID:               m.UserID,
 		StripeSubscriptionID: m.StripeSubscriptionID,
 		Status:               payments.SubscriptionStatus(m.Status),
 		CurrentPeriodStart:   m.CurrentPeriodStart,
@@ -110,7 +110,7 @@ func (m *DBSubscription) ToDomain() *payments.Subscription {
 type DBUsageRecord struct {
 	db.Model
 
-	WorkspaceID    uuid.UUID `gorm:"type:uuid;not null;index"`
+	UserID         uuid.UUID `gorm:"type:uuid;not null;index"`
 	ResourceType   string    `gorm:"not null;size:20;index"`
 	Quantity       int64     `gorm:"not null"`
 	OccurredAt     time.Time `gorm:"not null;index"`
@@ -134,7 +134,7 @@ func UsageRecordFromDomain(record *payments.UsageRecord) *DBUsageRecord {
 			CreatedAt: record.CreatedAt,
 			UpdatedAt: record.UpdatedAt,
 		},
-		WorkspaceID:    record.WorkspaceID,
+		UserID:         record.UserID,
 		ResourceType:   string(record.ResourceType),
 		Quantity:       record.Quantity,
 		OccurredAt:     record.OccurredAt,
@@ -151,7 +151,7 @@ func (m *DBUsageRecord) ToDomain() *payments.UsageRecord {
 
 	return &payments.UsageRecord{
 		ID:             m.ID,
-		WorkspaceID:    m.WorkspaceID,
+		UserID:         m.UserID,
 		ResourceType:   payments.ResourceType(m.ResourceType),
 		Quantity:       m.Quantity,
 		OccurredAt:     m.OccurredAt,

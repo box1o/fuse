@@ -18,7 +18,7 @@ func (a *Application) setupHandlers() error {
 	a.authHandler = authH.NewHandler(a.authSvc, a.cfg)
 	a.workspaceHandler = wsH.NewHandler(a.workspaceSvc, a.cfg)
 	a.mailHandler = mailH.NewHandler(a.cfg, a.mailSvc)
-	a.paymentsHandler = paymentsH.NewHandler(a.cfg, a.paymentsSvc, a.workspaceSvc)
+	a.paymentsHandler = paymentsH.NewHandler(a.cfg, a.paymentsSvc)
 	return nil
 }
 

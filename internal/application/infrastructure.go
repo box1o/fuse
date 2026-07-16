@@ -23,6 +23,13 @@ func (a *Application) setupDatabase() error {
 	}
 
 	if a.cfg.Database.Migrate {
+		if db.DB.Migrator().HasTable("billing_usage_records") &&
+			!db.DB.Migrator().HasColumn(&paymentsM.DBUsageRecord{}, "user_id") {
+			if err := db.DB.Migrator().DropTable("billing_usage_records"); err != nil {
+				return fmt.Errorf("reset legacy billing usage records failed: %w", err)
+			}
+		}
+
 		if err := db.Migrate(
 			&userM.DBUser{},
 			&workspaceM.DBWorkspace{},

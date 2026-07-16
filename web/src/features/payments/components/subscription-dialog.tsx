@@ -69,7 +69,6 @@ const SubscriptionDialog = ({
         SUBSCRIPTION_PLANS.find(
             (plan) => plan.id === balance.planId,
         ) ?? SUBSCRIPTION_PLANS[0];
-
     const isPaidPlan = balance.planId === "pro";
 
     return (
@@ -147,8 +146,7 @@ const SubscriptionDialog = ({
                         </h2>
 
                         <p className="mt-1 text-sm text-muted-foreground">
-                            Upgrade for more compute credits and
-                            accelerated resources.
+                            Free is the baseline plan. Pro unlocks more compute credits and accelerated resources.
                         </p>
 
                         <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -164,6 +162,7 @@ const SubscriptionDialog = ({
                                             isUpgrading &&
                                             plan.id === "pro"
                                         }
+                                        actionable={plan.id === "pro"}
                                         onSelect={
                                             onSelectPlan
                                         }

@@ -8,36 +8,41 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from "@/shared/components";
-import { useWorkspaceStore } from "@/features/workspace";
+import { useAuthStore } from "@/features/auth";
 import { useCreateCheckoutSession } from "../hooks";
 import type {
     CreditBalance,
     SubscriptionPlanId,
 } from "../types";
+import { useMockBillingStore } from "../store/mock-billing.store";
 import { SubscriptionDialog } from "./subscription-dialog";
-
-const MOCK_BALANCE: CreditBalance = {
-    planId: "free",
-    status: "free",
-    usedCredits: 18,
-    includedCredits: 240,
-    remainingCredits: 222,
-    resetAt: new Date().toISOString(),
-    nextResetDate: new Date(
-        Date.now() + 30 * 24 * 60 * 60 * 1000
-    ).toISOString(),
-};
 
 const CreditsButton = () => {
     const [open, setOpen] = React.useState(false);
 
-    const currentWorkspace = useWorkspaceStore(
-        (state) => state.currentWorkspace,
-    );
-
     const checkout = useCreateCheckoutSession();
+    const user = useAuthStore((state) => state.user);
+    const setUserKey = useMockBillingStore((state) => state.setUserKey);
+    const planId = useMockBillingStore((state) => state.planId);
+    const usedCredits = useMockBillingStore((state) => state.usedCredits);
+    const includedCredits = useMockBillingStore((state) => state.includedCredits);
+    const buyPro = useMockBillingStore((state) => state.buyPro);
 
-    const balance = MOCK_BALANCE;
+    React.useEffect(() => {
+        setUserKey(user?.id ?? user?.email ?? null);
+    }, [setUserKey, user?.email, user?.id]);
+
+    const balance: CreditBalance = {
+        planId,
+        status: planId === "pro" ? "active" : "free",
+        usedCredits,
+        includedCredits,
+        remainingCredits: Math.max(includedCredits - usedCredits, 0),
+        resetAt: new Date().toISOString(),
+        nextResetDate: new Date(
+            Date.now() + 30 * 24 * 60 * 60 * 1000
+        ).toISOString(),
+    };
 
     const remaining = Math.max(
         balance.includedCredits - balance.usedCredits,
@@ -51,25 +56,10 @@ const CreditsButton = () => {
             return;
         }
 
-        if (!currentWorkspace?.id) {
-            toast.error(
-                "Select a workspace before upgrading",
-            );
-            return;
-        }
+        buyPro();
 
-        /*
-         * Your existing backend checkout accepts a resource type,
-         * not a plan ID.
-         *
-         * This temporarily starts CPU checkout.
-         * The backend should later accept:
-         *
-         * plan_id: "pro"
-         */
         checkout.checkout({
-            workspaceId: currentWorkspace.id,
-            resourceType: "cpu",
+            planId: "pro",
             successUrl: `${window.location.origin}/payments?checkout=success`,
             cancelUrl: `${window.location.origin}/payments?checkout=canceled`,
         });
@@ -89,27 +79,20 @@ const CreditsButton = () => {
                         type="button"
                         size="sm"
                         variant="outline"
-                        className="h-8 max-w-[9rem] gap-1.5 rounded-full px-2.5"
+                        className="px-2 py-0 max-w-[9rem] gap-1.5 rounded-full "
                         onClick={() => setOpen(true)}
                     >
                         <Zap className="size-3.5 fill-brand text-brand" />
-
                         <span className="hidden truncate text-xs sm:inline">
-                            {balance.planId === "pro"
-                                ? `Pro · ${remaining.toLocaleString()}`
-                                : `${remaining} credits`}
-                        </span>
-
-                        <span className="sr-only">
-                            Open subscription plans
+                            {balance.planId === "pro" ? "Pro(Manage)" : "Free"}
                         </span>
                     </Button>
                 </TooltipTrigger>
 
                 <TooltipContent>
-                    {remaining.toLocaleString()} of{" "}
-                    {balance.includedCredits.toLocaleString()}{" "}
-                    credits remaining
+                    {balance.planId === "pro"
+                        ? `Pro active · ${remaining.toLocaleString()} credits remaining`
+                        : `${remaining.toLocaleString()} of ${balance.includedCredits.toLocaleString()} credits remaining`}
                 </TooltipContent>
             </Tooltip>
 

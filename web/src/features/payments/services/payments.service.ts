@@ -9,11 +9,10 @@ import type {
 import { PAYMENTS_ROUTES } from "../constants";
 
 class PaymentsService {
-    async createCheckoutSession(workspaceId: string, resourceType: "cpu" | "gpu" | "npu", successUrl: string, cancelUrl: string): Promise<ServiceResult<CheckoutSessionResponse>> {
+    async createCheckoutSession(planId: "free" | "pro", successUrl: string, cancelUrl: string): Promise<ServiceResult<CheckoutSessionResponse>> {
         try {
             const { data } = await api.post<CheckoutSessionResponse>(PAYMENTS_ROUTES.CHECKOUT, {
-                workspace_id: workspaceId,
-                resource_type: resourceType,
+                plan_id: planId,
                 success_url: successUrl,
                 cancel_url: cancelUrl,
             });

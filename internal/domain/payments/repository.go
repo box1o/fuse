@@ -9,12 +9,12 @@ import (
 type Repository interface {
 	// Billing accounts
 	CreateBillingAccount(ctx context.Context, account *BillingAccount) error
-	FindBillingAccountByWorkspaceID(ctx context.Context, workspaceID uuid.UUID) (*BillingAccount, error)
+	FindBillingAccountByUserID(ctx context.Context, userID uuid.UUID) (*BillingAccount, error)
 	FindBillingAccountByStripeCustomerID(ctx context.Context, stripeCustomerID string) (*BillingAccount, error)
 
 	// Subscriptions
 	UpsertSubscription(ctx context.Context, subscription *Subscription) error
-	FindSubscriptionByWorkspaceID(ctx context.Context, workspaceID uuid.UUID) (*Subscription, error)
+	FindSubscriptionByUserID(ctx context.Context, userID uuid.UUID) (*Subscription, error)
 	FindSubscriptionByStripeID(ctx context.Context, stripeSubscriptionID string) (*Subscription, error)
 
 	// Usage records
