@@ -198,3 +198,15 @@ func (m *DBWebhookEvent) ToDomain() *payments.WebhookEvent {
 		ProcessedAt:   m.ProcessedAt,
 	}
 }
+
+// CreditGrant
+
+type BillingCreditGrant struct {
+	ID                uuid.UUID `db:"id"`
+	UserID            uuid.UUID `db:"user_id"`
+	CreditPackID      string    `db:"credit_pack_id"`
+	Credits           int64     `db:"credits"`
+	Source            string    `db:"source"`
+	ExternalReference string    `db:"external_reference"`
+	CreatedAt         time.Time `db:"created_at"`
+}

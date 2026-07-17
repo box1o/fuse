@@ -93,6 +93,14 @@ func (s *Service) CreateCheckoutSession(
 		customerID = cust.ID
 	}
 
+	sub, err := s.repo.FindSubscriptionByUserID(ctx, userID)
+	if err != nil && !domain.ErrSubscriptionNotFound.Is(err) {
+		return nil, err
+	}
+	if sub != nil && sub.CancelAtPeriodEnd && sub.IsProAt(time.Now().UTC()) {
+		return nil, domain.ErrProSubscriptionStillActive
+	}
+
 	params := &stripe.CheckoutSessionParams{
 		Mode:       stripe.String(string(stripe.CheckoutSessionModeSubscription)),
 		SuccessURL: stripe.String(successURL),

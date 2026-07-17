@@ -105,6 +105,31 @@ func (s *Subscription) IsActive() bool {
 		s.Status == SubscriptionStatusTrialing
 }
 
+// IsProAt reports whether the subscription should still be treated as pro
+// at the provided time.
+//
+// A subscription can be canceled at period end and remain usable until the
+// current billing period expires.
+func (s *Subscription) IsProAt(now time.Time) bool {
+	if s == nil {
+		return false
+	}
+
+	if !s.IsActive() {
+		return false
+	}
+
+	if now.IsZero() {
+		now = time.Now()
+	}
+
+	return !now.UTC().After(s.CurrentPeriodEnd.UTC())
+}
+
+func (s *Subscription) IsPro() bool {
+	return s.IsProAt(time.Now().UTC())
+}
+
 func (s *Subscription) Update(
 	status SubscriptionStatus,
 	currentPeriodStart time.Time,

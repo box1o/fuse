@@ -76,7 +76,7 @@ const SubscriptionDialog = ({
             open={open}
             onOpenChange={onOpenChange}
         >
-            <Dialog.Content className="max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-3xl overflow-y-auto rounded-2xl p-0">
+            <Dialog.Content className="max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] sm:max-w-2xl overflow-y-auto rounded-2xl p-0">
                 <div className="border-b p-5 pr-12 sm:p-6 sm:pr-12">
                     <Dialog.Title>
                         Your plan
@@ -150,25 +150,9 @@ const SubscriptionDialog = ({
                         </p>
 
                         <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-                            {SUBSCRIPTION_PLANS.map(
-                                (plan) => (
-                                    <PlanCard
-                                        key={plan.id}
-                                        plan={plan}
-                                        currentPlanId={
-                                            balance.planId
-                                        }
-                                        isLoading={
-                                            isUpgrading &&
-                                            plan.id === "pro"
-                                        }
-                                        actionable={plan.id === "pro"}
-                                        onSelect={
-                                            onSelectPlan
-                                        }
-                                    />
-                                ),
-                            )}
+                            <p>
+                                SUB here will be the plan cards for each subscription plan, allowing users to select or upgrade their plan. Each card will display the plan name, description, price, and included credits. Users can click on a plan to select it, which will trigger the onSelectPlan callback with the selected plan's ID.
+                            </p>
                         </div>
                     </section>
 

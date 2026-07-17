@@ -11,7 +11,6 @@ interface PlanCardProps {
     plan: SubscriptionPlan;
     currentPlanId: SubscriptionPlanId;
     isLoading?: boolean;
-    actionable?: boolean;
     onSelect: (planId: SubscriptionPlanId) => void;
 }
 
@@ -31,12 +30,10 @@ const PlanCard = ({
     plan,
     currentPlanId,
     isLoading = false,
-    actionable = true,
     onSelect,
 }: PlanCardProps) => {
     const isCurrent = plan.id === currentPlanId;
     const isFree = plan.priceMonthlyCents === 0;
-    const canPurchase = actionable && !isCurrent;
 
     return (
         <article
@@ -100,20 +97,18 @@ const PlanCard = ({
                 variant={isCurrent ? "outline" : "default"}
                 className={cn(
                     "mt-6 w-full",
-                    canPurchase &&
+                    !isCurrent &&
                         plan.recommended &&
                         "bg-brand text-black hover:bg-brand/90",
                 )}
-                disabled={!canPurchase || isLoading}
+                disabled={isCurrent || isLoading}
                 onClick={() => onSelect(plan.id)}
             >
                 {isCurrent
                     ? "Current plan"
-                    : !actionable
-                      ? "Included"
-                      : isLoading
-                        ? "Opening checkout..."
-                        : `Upgrade to ${plan.name}`}
+                    : isLoading
+                      ? "Opening checkout..."
+                      : `Upgrade to ${plan.name}`}
             </Button>
         </article>
     );

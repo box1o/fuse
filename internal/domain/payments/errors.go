@@ -23,6 +23,7 @@ var (
 	ErrBillingAccountAlreadyExists  = errors.New("PAYMENTS_BILLING_ACCOUNT_ALREADY_EXISTS", "billing account already exists")
 	ErrCreateBillingAccountFailed   = errors.New("PAYMENTS_CREATE_BILLING_ACCOUNT_FAILED", "failed to create billing account")
 	ErrSubscriptionNotFound         = errors.New("PAYMENTS_SUBSCRIPTION_NOT_FOUND", "subscription was not found")
+	ErrProSubscriptionStillActive   = errors.New("PAYMENTS_PRO_SUBSCRIPTION_CONFLICT", "pro subscription is still active")
 	ErrUpsertSubscriptionFailed     = errors.New("PAYMENTS_UPSERT_SUBSCRIPTION_FAILED", "failed to save subscription")
 	ErrUsageRecordNotFound          = errors.New("PAYMENTS_USAGE_RECORD_NOT_FOUND", "usage record was not found")
 	ErrCreateUsageRecordFailed      = errors.New("PAYMENTS_CREATE_USAGE_RECORD_FAILED", "failed to create usage record")
@@ -33,4 +34,11 @@ var (
 	ErrCreateWebhookEventFailed     = errors.New("PAYMENTS_CREATE_WEBHOOK_EVENT_FAILED", "failed to store webhook event")
 	ErrDatabaseOperation            = errors.New("PAYMENTS_DATABASE_OPERATION_FAILED", "payment database operation failed")
 	ErrInvalidSubscription          = errors.New("PAYMENTS_INVALID_SUBSCRIPTION", "subscription is invalid")
+
+	// Credit Grant Errors
+	ErrCreditGrantNotFound     = errors.New("PAYMENTS_CREDIT_GRANT_NOT_FOUND", "credit grant was not found")
+	ErrCreditPackNotFound      = errors.New("PAYMENTS_CREDIT_PACK_NOT_FOUND", "credit pack was not found")
+	ErrCreditPackNotConfigured = errors.New("PAYMENTS_CREDIT_PACK_NOT_CONFIGURED", "credit pack is not configured")
+	ErrInvalidCheckoutSession  = errors.New("PAYMENTS_INVALID_CHECKOUT_SESSION", "checkout session is invalid")
+	ErrInvalidPlan             = errors.New("PAYMENTS_INVALID_PLAN", "plan is invalid")
 )
