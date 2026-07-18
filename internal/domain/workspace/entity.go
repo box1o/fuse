@@ -6,19 +6,11 @@ import (
 	"github.com/google/uuid"
 )
 
-type Plan string
-
-const (
-	PlanFree       Plan = "free"
-	PlanPro        Plan = "pro"
-	PlanEnterprise Plan = "enterprise"
-)
 
 type Workspace struct {
 	ID        uuid.UUID `json:"id"`
 	Name      string    `json:"name"`
 	OwnerID   uuid.UUID `json:"owner_id"`
-	Plan      Plan      `json:"plan"`
 	UpdatedAt time.Time `json:"updated_at"`
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -29,7 +21,6 @@ func NewWorkspace(name string, ownerID uuid.UUID) *Workspace {
 		ID:        uuid.New(),
 		Name:      name,
 		OwnerID:   ownerID,
-		Plan:      PlanFree,
 		UpdatedAt: now,
 		CreatedAt: now,
 	}

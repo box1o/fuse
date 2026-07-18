@@ -52,18 +52,6 @@ const Workspaces: React.FC<WorkspacesProps> = ({ onRowClick }) => {
             },
         },
         {
-            accessorKey: "plan",
-            header: "Plan",
-            cell: ({ row }) => {
-                const plan = row.getValue("plan") as string;
-                return (
-                    <Badge variant="secondary">
-                        {plan}
-                    </Badge>
-                );
-            },
-        },
-        {
             accessorKey: "created_at",
             header: "Created At",
             cell: ({ row }) => {
