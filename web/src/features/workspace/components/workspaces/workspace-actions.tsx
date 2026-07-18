@@ -34,9 +34,6 @@ const WorkspaceActions: React.FC<WorspaceActionsProps> = ({
                     Edit
                 </DropdownMenu.Item>
                 <DropdownMenu.Item>
-                    Change Plan
-                </DropdownMenu.Item>
-                <DropdownMenu.Item>
                     Members
                 </DropdownMenu.Item>
                 <DropdownMenu.Item
