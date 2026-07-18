@@ -87,7 +87,6 @@ debug
 __debug_bin*
 
 # Air live reload tool
-.air.toml
 tmp/
 
 # Testing

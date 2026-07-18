@@ -9,15 +9,6 @@ definitions:
       message:
         type: string
     type: object
-  internal_interfaces_server_compute.ComputeService:
-    properties:
-      id:
-        type: string
-      name:
-        type: string
-      status:
-        type: string
-    type: object
   internal_interfaces_server_health.HealthResponse:
     properties:
       services:
@@ -137,25 +128,6 @@ paths:
       summary: Get the authenticated user
       tags:
       - authentication
-  /compute:
-    get:
-      description: Returns the compute services available to the authenticated user.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/internal_interfaces_server_compute.ComputeService'
-            type: array
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
-      summary: List compute services
-      tags:
-      - compute
   /health:
     get:
       consumes:

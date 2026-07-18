@@ -141,35 +141,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/compute": {
-            "get": {
-                "description": "Returns the compute services available to the authenticated user.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "compute"
-                ],
-                "summary": "List compute services",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/internal_interfaces_server_compute.ComputeService"
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/fuse_pkg_errors.HTTPError"
-                        }
-                    }
-                }
-            }
-        },
         "/health": {
             "get": {
                 "description": "Get application health status",
@@ -444,20 +415,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "internal_interfaces_server_compute.ComputeService": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "status": {
                     "type": "string"
                 }
             }
