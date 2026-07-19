@@ -10,6 +10,7 @@ import (
 	"fuse/pkg/log"
 
 	computeM "fuse/internal/domain/compute/models"
+	creditM "fuse/internal/domain/credit/models"
 	userM "fuse/internal/domain/user/models"
 	workspaceM "fuse/internal/domain/workspace/models"
 
@@ -29,6 +30,9 @@ func (a *Application) setupDatabase() error {
 			&workspaceM.DBMember{},
 			&computeM.DBNode{},
 			&computeM.DBCLICredential{},
+			&creditM.DBAccount{},
+			&creditM.DBCreditPack{},
+			&creditM.DBTransaction{},
 		); err != nil {
 			return fmt.Errorf("migration failed: %w", err)
 		}

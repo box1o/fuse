@@ -14,6 +14,7 @@ import (
 
 	"fuse/internal/services/auth"
 	computeSvc "fuse/internal/services/compute"
+	creditService "fuse/internal/services/credit"
 	deviceAuthSvc "fuse/internal/services/deviceauth"
 	eventsSvc "fuse/internal/services/events"
 	"fuse/internal/services/mail"
@@ -30,6 +31,7 @@ import (
 	wsH "fuse/internal/interfaces/server/workspace"
 
 	"fuse/internal/domain/compute"
+	domainCredit "fuse/internal/domain/credit"
 	"fuse/internal/domain/user"
 	"fuse/internal/domain/workspace"
 )
@@ -47,9 +49,11 @@ type Application struct {
 	sessMgr  *session.Manager
 
 	// Repositories
-	userRepo      user.Repository
-	workspaceRepo workspace.Repository
-	computeRepo   compute.Repository
+	userRepo       user.Repository
+	workspaceRepo  workspace.Repository
+	computeRepo    compute.Repository
+	creditPackRepo domainCredit.PackRepository
+	creditUoW      *postgres.CreditUnitOfWork
 
 	// Services
 	authSvc         *auth.Service
@@ -58,6 +62,7 @@ type Application struct {
 	notificationSvc *svcNotification.Service
 	computeSvc      *computeSvc.Service
 	deviceAuthSvc   *deviceAuthSvc.Service
+	creditSvc       *creditService.Service
 
 	// Middleware
 	authMW *authMW.AuthMiddleware

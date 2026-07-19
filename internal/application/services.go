@@ -3,6 +3,7 @@ package application
 import (
 	"fuse/internal/services/auth"
 	computeSvc "fuse/internal/services/compute"
+	creditService "fuse/internal/services/credit"
 	deviceAuthSvc "fuse/internal/services/deviceauth"
 	"fuse/internal/services/mail"
 	"fuse/internal/services/notification"
@@ -17,5 +18,6 @@ func (a *Application) setupServices() error {
 	a.notificationSvc = notification.NewService(a.cfg)
 	a.computeSvc = computeSvc.NewService(a.computeRepo)
 	a.deviceAuthSvc = deviceAuthSvc.NewService(a.cfg, a.redis, a.computeSvc, a.userRepo)
+	a.creditSvc = creditService.NewService(a.creditUoW, a.creditPackRepo)
 	return nil
 }
