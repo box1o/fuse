@@ -24,7 +24,6 @@ const MainHeader: React.FC = () => {
 
                 <Header.Group className="ml-4">
                     <WorkspaceSelector />
-
                     <Button
                         variant="ghost"
                         size="icon"

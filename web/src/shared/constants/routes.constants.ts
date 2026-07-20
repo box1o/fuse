@@ -6,5 +6,6 @@ const ROUTES = {
     COMPUTE: "/compute",
     AUTH: "/auth",
     DEVICE: "/device",
+    PAYMENTS: "/payments",
 }
 export { ROUTES }
