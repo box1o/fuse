@@ -16,6 +16,7 @@ var (
 	ErrPackCodeRequired = errors.New("PACK_CODE_REQUIRED", "credit pack code is required")
 	ErrPackNameRequired = errors.New("PACK_NAME_REQUIRED", "credit pack name is required")
 	ErrPackNotFound     = errors.New("PACK_NOT_FOUND", "credit pack was not found")
+	ErrPackInactive     = errors.New("PACK_INACTIVE", "credit pack is inactive")
 
 	// Transcation
 	ErrAccountIDRequired             = errors.New("ACCOUNT_ID_REQUIRED", "account id is required")

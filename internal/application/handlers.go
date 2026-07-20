@@ -7,9 +7,11 @@ import (
 	healthH "fuse/internal/interfaces/server/health"
 	mailH "fuse/internal/interfaces/server/mail"
 	authMW "fuse/internal/interfaces/server/middleware"
+	paymentH "fuse/internal/interfaces/server/payment"
 	wsH "fuse/internal/interfaces/server/workspace"
 
 	"fuse/internal/interfaces/server"
+
 	"github.com/go-chi/chi/v5"
 )
 
@@ -22,6 +24,7 @@ func (a *Application) setupHandlers() error {
 	a.computeHandler = computeH.NewHandler(a.computeSvc, a.cliMW)
 	a.deviceAuthHandler = deviceAuthH.NewHandler(a.deviceAuthSvc, a.computeSvc, a.cliMW)
 	a.mailHandler = mailH.NewHandler(a.cfg, a.mailSvc)
+	a.paymentHandler = paymentH.NewHandler(a.paymentSvc, a.paymentSvc, a.stripeWebhookParser)
 	return nil
 }
 
@@ -34,6 +37,7 @@ func (a *Application) setupServer() error {
 			a.workspaceHandler.RegisterRoutes(r, a.authMW)
 			a.computeHandler.RegisterRoutes(r, a.authMW)
 			a.mailHandler.RegisterRoutes(r, a.authMW)
+			a.paymentHandler.RegisterRoutes(r, a.authMW)
 		}),
 	}
 	a.srv = server.NewServer(a.cfg, opts...)

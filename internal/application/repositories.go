@@ -8,6 +8,7 @@ func (a *Application) setupRepositories() error {
 	a.computeRepo = postgres.NewComputeRepository(a.db.DB)
 	a.creditUoW = postgres.NewCreditUnitOfWork(a.db.DB)
 	a.creditPackRepo = postgres.NewCreditPackRepository(a.db.DB)
+	a.paymentRepo = postgres.NewPaymentRepository(a.db.DB)
 
 	return nil
 }
