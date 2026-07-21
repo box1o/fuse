@@ -21,7 +21,7 @@ user = "postgres"
 password = ""
 name = "fintaxy"
 sslmode = "disable"
-migrate = true 
+migrate = false
 
 [redis]
 host = "localhost"

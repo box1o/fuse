@@ -12,7 +12,6 @@ type DBWorkspace struct {
 
 	Name    string `gorm:"not null;size:255" json:"name"`
 	OwnerID string `gorm:"not null;size:36" json:"owner_id"`
-	Plan    string `gorm:"not null;default:'free';size:50" json:"plan"`
 
 	//Relations
 	Members []DBMember `gorm:"foreignKey:WorkspaceID" json:"members"`
@@ -27,7 +26,6 @@ func FromDomain(domainWorkspace *workspace.Workspace) *DBWorkspace {
 		Model:   db.Model{ID: domainWorkspace.ID, CreatedAt: domainWorkspace.CreatedAt, UpdatedAt: domainWorkspace.UpdatedAt},
 		Name:    domainWorkspace.Name,
 		OwnerID: domainWorkspace.OwnerID.String(),
-		Plan:    string(domainWorkspace.Plan),
 	}
 }
 
@@ -36,7 +34,6 @@ func (d *DBWorkspace) ToDomain() *workspace.Workspace {
 		ID:        d.ID,
 		Name:      d.Name,
 		OwnerID:   uuid.MustParse(d.OwnerID),
-		Plan:      workspace.Plan(d.Plan),
 		CreatedAt: d.CreatedAt,
 		UpdatedAt: d.UpdatedAt,
 	}
