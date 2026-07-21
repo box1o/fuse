@@ -12,6 +12,17 @@ import (
 
 const maxWebhookRequestBodySize = 1 << 20 // 1 MiB
 
+// @Summary		Handle Stripe webhook
+// @Description	Processes an incoming Stripe webhook event for payment updates.
+// @Tags			payments
+// @Accept		json
+// @Produce		json
+// @Param			Stripe-Signature	header	string	true	"Stripe signature"
+// @Param			request	body	object	true	"Stripe webhook payload"
+// @Success		204
+// @Failure		400	{object}	errors.HTTPError
+// @Failure		500	{object}	errors.HTTPError
+// @Router			/payments/webhook [post]
 func (h *Handler) HandleWebhook(writer http.ResponseWriter, request *http.Request) {
 	payload, err := readWebhookPayload(writer, request)
 	if err != nil {

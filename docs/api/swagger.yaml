@@ -33,6 +33,24 @@ definitions:
       to:
         type: string
     type: object
+  internal_interfaces_server_payment.CreateCheckoutRequest:
+    properties:
+      cancel_url:
+        type: string
+      credit_pack_id:
+        type: string
+      success_url:
+        type: string
+    type: object
+  internal_interfaces_server_payment.CreateCheckoutResponse:
+    properties:
+      checkout_url:
+        type: string
+      payment_id:
+        type: string
+      session_id:
+        type: string
+    type: object
   internal_interfaces_server_workspace.CreateWorkspaceRequest:
     properties:
       name:
@@ -175,6 +193,73 @@ paths:
       summary: Send an issue email
       tags:
       - mail
+  /payments/checkout:
+    post:
+      consumes:
+      - application/json
+      description: Creates a Stripe checkout session for the selected credit pack.
+      parameters:
+      - description: Checkout details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interfaces_server_payment.CreateCheckoutRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_interfaces_server_payment.CreateCheckoutResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+      summary: Create a payment checkout session
+      tags:
+      - payments
+  /payments/webhook:
+    post:
+      consumes:
+      - application/json
+      description: Processes an incoming Stripe webhook event for payment updates.
+      parameters:
+      - description: Stripe signature
+        in: header
+        name: Stripe-Signature
+        required: true
+        type: string
+      - description: Stripe webhook payload
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+      summary: Handle Stripe webhook
+      tags:
+      - payments
   /settings:
     get:
       description: Returns settings available to the authenticated user.

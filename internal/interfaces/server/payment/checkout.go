@@ -15,6 +15,17 @@ import (
 
 const maxCheckoutRequestBodySize = 64 * 1024
 
+// @Summary		Create a payment checkout session
+// @Description	Creates a Stripe checkout session for the selected credit pack.
+// @Tags			payments
+// @Accept		json
+// @Produce		json
+// @Param			request	body	CreateCheckoutRequest	true	"Checkout details"
+// @Success		201	{object}	CreateCheckoutResponse
+// @Failure		400	{object}	errors.HTTPError
+// @Failure		401	{object}	errors.HTTPError
+// @Failure		500	{object}	errors.HTTPError
+// @Router			/payments/checkout [post]
 func (h *Handler) CreateCheckout(
 	writer http.ResponseWriter,
 	request *http.Request,

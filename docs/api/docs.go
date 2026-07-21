@@ -213,6 +213,108 @@ const docTemplate = `{
                 }
             }
         },
+        "/payments/checkout": {
+            "post": {
+                "description": "Creates a Stripe checkout session for the selected credit pack.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payments"
+                ],
+                "summary": "Create a payment checkout session",
+                "parameters": [
+                    {
+                        "description": "Checkout details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_interfaces_server_payment.CreateCheckoutRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/internal_interfaces_server_payment.CreateCheckoutResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/fuse_pkg_errors.HTTPError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/fuse_pkg_errors.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/fuse_pkg_errors.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
+        "/payments/webhook": {
+            "post": {
+                "description": "Processes an incoming Stripe webhook event for payment updates.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payments"
+                ],
+                "summary": "Handle Stripe webhook",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Stripe signature",
+                        "name": "Stripe-Signature",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Stripe webhook payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/fuse_pkg_errors.HTTPError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/fuse_pkg_errors.HTTPError"
+                        }
+                    }
+                }
+            }
+        },
         "/settings": {
             "get": {
                 "description": "Returns settings available to the authenticated user.",
@@ -452,6 +554,34 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "to": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_interfaces_server_payment.CreateCheckoutRequest": {
+            "type": "object",
+            "properties": {
+                "cancel_url": {
+                    "type": "string"
+                },
+                "credit_pack_id": {
+                    "type": "string"
+                },
+                "success_url": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_interfaces_server_payment.CreateCheckoutResponse": {
+            "type": "object",
+            "properties": {
+                "checkout_url": {
+                    "type": "string"
+                },
+                "payment_id": {
+                    "type": "string"
+                },
+                "session_id": {
                     "type": "string"
                 }
             }
