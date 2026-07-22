@@ -62,6 +62,19 @@ interface CreditBalance {
     nextResetDate: string;
 }
 
+interface CreditPack {
+    id: string;
+    code: string;
+    name: string;
+    credits: number;
+    price_amount: number;
+    currency: string;
+}
+
+interface CreditBalanceResponse {
+    balance: number;
+}
+
 export type {
     CancelSubscriptionRequest,
     CheckoutSessionResponse,
@@ -70,6 +83,8 @@ export type {
     WebhookRequest,
     SubscriptionPlan,
     CreditBalance,
+    CreditBalanceResponse,
+    CreditPack,
     ResourceType,
     SubscriptionStatus,
     SubscriptionPlanId,

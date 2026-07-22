@@ -6,7 +6,7 @@ import (
 
 	paymentService "fuse/internal/services/payment"
 
-	stripeWebhook "github.com/stripe/stripe-go/v83/webhook"
+	stripeWebhook "github.com/stripe/stripe-go/v86/webhook"
 )
 
 type WebhookParser struct {

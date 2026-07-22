@@ -2,6 +2,8 @@ package payment
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"strings"
 
 	domainPayment "fuse/internal/domain/payment"
@@ -84,22 +86,21 @@ func (s *Service) CreateCheckout(ctx context.Context, input CreateCheckoutInput)
 			CancelURL:      cancelURL,
 		},
 	)
-	if err != nil {
-		// Keep the internal payment for auditing, but mark it as failed because
-		// no usable external checkout session was created.
-		if failErr := payment.Fail(); failErr == nil {
-			_ = s.payments.Update(ctx, payment)
-		}
 
-		return nil, err
+	if err != nil {
+		return nil, s.failPayment(
+			ctx,
+			payment,
+			fmt.Errorf("create checkout session: %w", err),
+		)
 	}
 
 	if err := validateCheckoutSession(payment, session); err != nil {
-		if failErr := payment.Fail(); failErr == nil {
-			_ = s.payments.Update(ctx, payment)
-		}
-
-		return nil, err
+		return nil, s.failPayment(
+			ctx,
+			payment,
+			fmt.Errorf("validate checkout session: %w", err),
+		)
 	}
 
 	if err := payment.AttachProviderSession(session.SessionID); err != nil {
@@ -165,4 +166,26 @@ func validateCheckoutSession(payment *domainPayment.Payment, session *CheckoutSe
 	}
 
 	return nil
+}
+
+func (s *Service) failPayment(ctx context.Context, payment *domainPayment.Payment, cause error) error {
+	if failErr := payment.Fail(); failErr != nil {
+		return errors.Join(
+			cause,
+			fmt.Errorf("mark payment failed: %w", failErr),
+		)
+	}
+
+	if updateErr := s.payments.Update(ctx, payment); updateErr != nil {
+		return errors.Join(
+			cause,
+			fmt.Errorf(
+				"persist failed payment %s: %w",
+				payment.ID,
+				updateErr,
+			),
+		)
+	}
+
+	return cause
 }

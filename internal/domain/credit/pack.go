@@ -8,19 +8,24 @@ import (
 )
 
 type Pack struct {
-	ID      uuid.UUID `json:"id"`
-	Code    string    `json:"code"`
-	Name    string    `json:"name"`
-	Credits Amount    `json:"credits"`
-	Active  bool      `json:"active"`
+	ID            uuid.UUID `json:"id"`
+	Code          string    `json:"code"`
+	Name          string    `json:"name"`
+	Credits       Amount    `json:"credits"`
+	Active        bool      `json:"active"`
+	StripePriceID string    `json:"-"`
+	PriceAmount   int64     `json:"price_amount"`
+	Currency      string    `json:"currency"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func NewPack(code, name string, credits Amount) (*Pack, error) {
-	code = strings.TrimSpace(code)
-	name = strings.TrimSpace(name)
+func NewPack(input Pack) (*Pack, error) {
+	code := strings.TrimSpace(input.Code)
+	name := strings.TrimSpace(input.Name)
+	stripePriceID := strings.TrimSpace(input.StripePriceID)
+	currency := strings.ToUpper(strings.TrimSpace(input.Currency))
 
 	if code == "" {
 		return nil, ErrPackCodeRequired
@@ -30,20 +35,35 @@ func NewPack(code, name string, credits Amount) (*Pack, error) {
 		return nil, ErrPackNameRequired
 	}
 
-	if !credits.IsPositive() {
+	if stripePriceID == "" {
+		return nil, ErrPackStripePriceIDRequired
+	}
+
+	if input.PriceAmount <= 0 {
+		return nil, ErrPackPriceAmountInvalid
+	}
+
+	if len(currency) != 3 {
+		return nil, ErrPackCurrencyInvalid
+	}
+
+	if !input.Credits.IsPositive() {
 		return nil, ErrAmountMustBePositive
 	}
 
 	now := time.Now().UTC()
 
 	return &Pack{
-		ID:        uuid.New(),
-		Code:      code,
-		Name:      name,
-		Credits:   credits,
-		Active:    true,
-		CreatedAt: now,
-		UpdatedAt: now,
+		ID:            uuid.New(),
+		Code:          code,
+		Name:          name,
+		Credits:       input.Credits,
+		StripePriceID: stripePriceID,
+		PriceAmount:   input.PriceAmount,
+		Currency:      currency,
+		Active:        true,
+		CreatedAt:     now,
+		UpdatedAt:     now,
 	}, nil
 }
 

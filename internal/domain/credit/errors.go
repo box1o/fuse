@@ -13,10 +13,13 @@ var (
 	ErrAccountNotFound      = errors.New("CREDIT_ACCOUNT_NOT_FOUND", "Credit account was not found")
 
 	// Pack
-	ErrPackCodeRequired = errors.New("PACK_CODE_REQUIRED", "credit pack code is required")
-	ErrPackNameRequired = errors.New("PACK_NAME_REQUIRED", "credit pack name is required")
-	ErrPackNotFound     = errors.New("PACK_NOT_FOUND", "credit pack was not found")
-	ErrPackInactive     = errors.New("PACK_INACTIVE", "credit pack is inactive")
+	ErrPackCodeRequired          = errors.New("PACK_CODE_REQUIRED", "credit pack code is required")
+	ErrPackNameRequired          = errors.New("PACK_NAME_REQUIRED", "credit pack name is required")
+	ErrPackNotFound              = errors.New("PACK_NOT_FOUND", "credit pack was not found")
+	ErrPackInactive              = errors.New("PACK_INACTIVE", "credit pack is inactive")
+	ErrPackStripePriceIDRequired = errors.New("PACK_STRIPE_PRICE_ID_REQUIRED", "credit pack Stripe price ID is required")
+	ErrPackPriceAmountInvalid    = errors.New("PACK_PRICE_AMOUNT_INVALID", "credit pack price amount must be positive")
+	ErrPackCurrencyInvalid       = errors.New("PACK_CURRENCY_INVALID", "credit pack currency must be a three-letter code")
 
 	// Transcation
 	ErrAccountIDRequired             = errors.New("ACCOUNT_ID_REQUIRED", "account id is required")

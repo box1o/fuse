@@ -5,6 +5,8 @@ import type {
     CancelSubscriptionRequest,
     CheckoutSessionResponse,
     CreateCheckoutRequest,
+    CreditBalanceResponse,
+    CreditPack,
     ProjectUsageRequest,
     WebhookRequest,
 } from "../types";
@@ -120,6 +122,46 @@ class PaymentsService {
         }
 
         return `Failed to ${operation}`;
+    }
+
+    async listCreditPacks(): Promise<ServiceResult<CreditPack[]>> {
+        try {
+            const { data } = await api.get<CreditPack[]>(
+                PAYMENTS_ROUTES.CREDIT_PACKS,
+            );
+
+            return {
+                data,
+                success: true,
+            };
+        } catch (error: unknown) {
+            return {
+                error: this.handleError(error, "load credit packs"),
+                success: false,
+            };
+        }
+    }
+
+    async getCreditBalance(): Promise< ServiceResult<CreditBalanceResponse>> {
+        try {
+            const { data } =
+                await api.get<CreditBalanceResponse>(
+                    PAYMENTS_ROUTES.CREDIT_BALANCE,
+                );
+
+            return {
+                data,
+                success: true,
+            };
+        } catch (error: unknown) {
+            return {
+                error: this.handleError(
+                    error,
+                    "load credit balance",
+                ),
+                success: false,
+            };
+        }
     }
 }
 

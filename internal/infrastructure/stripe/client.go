@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	stripeSDK "github.com/stripe/stripe-go/v83"
+	stripeSDK "github.com/stripe/stripe-go/v86"
 )
 
 type checkoutSessionCreator func(ctx context.Context, params *stripeSDK.CheckoutSessionCreateParams) (*stripeSDK.CheckoutSession, error)

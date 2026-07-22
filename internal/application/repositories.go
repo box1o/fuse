@@ -9,6 +9,8 @@ func (a *Application) setupRepositories() error {
 	a.creditUoW = postgres.NewCreditUnitOfWork(a.db.DB)
 	a.creditPackRepo = postgres.NewCreditPackRepository(a.db.DB)
 	a.paymentRepo = postgres.NewPaymentRepository(a.db.DB)
+	a.paymentPriceCatalog = postgres.NewPaymentPriceCatalog(a.creditPackRepo)
+	a.creditAccountRepo = postgres.NewCreditAccountRepository(a.db.DB)
 
 	return nil
 }

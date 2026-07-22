@@ -26,6 +26,7 @@ import (
 	"fuse/internal/interfaces/server"
 	authH "fuse/internal/interfaces/server/auth"
 	computeH "fuse/internal/interfaces/server/compute"
+	creditH "fuse/internal/interfaces/server/credit"
 	deviceAuthH "fuse/internal/interfaces/server/deviceauth"
 	healthH "fuse/internal/interfaces/server/health"
 	mailH "fuse/internal/interfaces/server/mail"
@@ -52,16 +53,17 @@ type Application struct {
 	authProv            *provider.AuthProvider
 	sessMgr             *session.Manager
 	stripeClient        *stripeInfrastructure.Client
-	stripePriceCatalog  *stripeInfrastructure.ConfigPriceCatalog
 	stripeWebhookParser *stripeInfrastructure.WebhookParser
+	paymentPriceCatalog paymentSvc.PriceCatalog
 
 	// Repositories
-	userRepo       user.Repository
-	workspaceRepo  workspace.Repository
-	computeRepo    compute.Repository
-	creditPackRepo domainCredit.PackRepository
-	creditUoW      *postgres.CreditUnitOfWork
-	paymentRepo    domainPayment.Repository
+	userRepo          user.Repository
+	workspaceRepo     workspace.Repository
+	computeRepo       compute.Repository
+	creditAccountRepo domainCredit.AccountRepository
+	creditPackRepo    domainCredit.PackRepository
+	creditUoW         *postgres.CreditUnitOfWork
+	paymentRepo       domainPayment.Repository
 
 	// Services
 	authSvc         *auth.Service
@@ -85,6 +87,7 @@ type Application struct {
 	deviceAuthHandler *deviceAuthH.Handler
 	mailHandler       *mailH.Handler
 	paymentHandler    *paymentH.Handler
+	creditHandler     *creditH.Handler
 }
 
 func NewApplication() (*Application, error) {

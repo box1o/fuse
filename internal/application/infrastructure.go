@@ -113,14 +113,6 @@ func (a *Application) setupStripe() error {
 		return fmt.Errorf("create Stripe client: %w", err)
 	}
 
-	stripePriceCatalog, err :=
-		stripeInfrastructure.NewConfigPriceCatalog(
-			a.cfg.Stripe.CreditPrices,
-		)
-	if err != nil {
-		return fmt.Errorf("create Stripe price catalog: %w", err)
-	}
-
 	stripeWebhookParser, err :=
 		stripeInfrastructure.NewWebhookParser(
 			a.cfg.Stripe.WebhookSecret,
@@ -133,7 +125,6 @@ func (a *Application) setupStripe() error {
 	}
 
 	a.stripeClient = stripeClient
-	a.stripePriceCatalog = stripePriceCatalog
 	a.stripeWebhookParser = stripeWebhookParser
 
 	return nil

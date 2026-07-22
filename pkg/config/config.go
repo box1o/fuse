@@ -107,11 +107,14 @@ func setupViper() error {
 		return fmt.Errorf("no config file found. Expected one of: %v in paths: %v", configNames, configPaths)
 	}
 
-	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.AutomaticEnv()
 
 	creditPriceBindings := map[string]string{
-		"stripe.pro_price_id":                        "STRIPE_PRO_PRICE_ID",
+		"stripe.secret_key":     "STRIPE_SECRET_KEY",
+		"stripe.webhook_secret": "STRIPE_WEBHOOK_SECRET",
+		"stripe.pro_price_id":   "STRIPE_PRO_PRICE_ID",
+
 		"stripe.credit_prices.credits_240.price_id":  "STRIPE_CREDITS_240_PRICE_ID",
 		"stripe.credit_prices.credits_240.amount":    "STRIPE_CREDITS_240_AMOUNT",
 		"stripe.credit_prices.credits_240.currency":  "STRIPE_CREDITS_240_CURRENCY",

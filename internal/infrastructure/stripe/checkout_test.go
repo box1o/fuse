@@ -9,7 +9,7 @@ import (
 	paymentService "fuse/internal/services/payment"
 
 	"github.com/google/uuid"
-	stripeSDK "github.com/stripe/stripe-go/v83"
+	stripeSDK "github.com/stripe/stripe-go/v86"
 )
 
 var errStripeAPI = stdErrors.New("forced Stripe API failure")

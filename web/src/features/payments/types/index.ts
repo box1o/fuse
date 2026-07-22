@@ -6,6 +6,8 @@ export type {
     WebhookRequest,
     SubscriptionPlan,
     CreditBalance,
+    CreditBalanceResponse,
+    CreditPack,
     ResourceType,
     SubscriptionStatus,
     SubscriptionPlanId,

@@ -1,7 +1,6 @@
 package application
 
 import (
-	paymentH "fuse/internal/interfaces/server/payment"
 	"fuse/internal/services/auth"
 	computeSvc "fuse/internal/services/compute"
 	creditService "fuse/internal/services/credit"
@@ -20,8 +19,8 @@ func (a *Application) setupServices() error {
 	a.notificationSvc = notification.NewService(a.cfg)
 	a.computeSvc = computeSvc.NewService(a.computeRepo)
 	a.deviceAuthSvc = deviceAuthSvc.NewService(a.cfg, a.redis, a.computeSvc, a.userRepo)
-	a.creditSvc = creditService.NewService(a.creditUoW, a.creditPackRepo)
-	a.paymentSvc = paymentService.NewService(a.paymentRepo, a.creditSvc, a.creditSvc, a.stripePriceCatalog, a.stripeClient)
-	a.paymentHandler = paymentH.NewHandler(a.paymentSvc, a.paymentSvc, a.stripeWebhookParser)
+	a.creditSvc = creditService.NewService(a.creditUoW, a.creditAccountRepo, a.creditPackRepo)
+	a.paymentSvc = paymentService.NewService(a.paymentRepo, a.creditSvc, a.creditSvc, a.paymentPriceCatalog, a.stripeClient)
+
 	return nil
 }

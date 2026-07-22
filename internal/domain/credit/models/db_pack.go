@@ -9,10 +9,13 @@ import (
 type DBCreditPack struct {
 	db.Model
 
-	Code    string `gorm:"not null;size:100;uniqueIndex" json:"code"`
-	Name    string `gorm:"not null;size:255" json:"name"`
-	Credits int64  `gorm:"not null;check:credits > 0" json:"credits"`
-	Active  bool   `gorm:"not null;default:true;index" json:"active"`
+	Code          string `gorm:"not null;size:100;uniqueIndex" json:"code"`
+	Name          string `gorm:"not null;size:255" json:"name"`
+	Credits       int64  `gorm:"not null;check:credits > 0" json:"credits"`
+	Active        bool   `gorm:"not null;default:true;index" json:"active"`
+	StripePriceID string `gorm:"not null;size:255;uniqueIndex" json:"-"`
+	PriceAmount   int64  `gorm:"not null;check:price_amount > 0" json:"price_amount"`
+	Currency      string `gorm:"not null;size:3" json:"currency"`
 }
 
 func (DBCreditPack) TableName() string {
@@ -25,11 +28,14 @@ func FromDomainPack(pack *credit.Pack) (*DBCreditPack, error) {
 	}
 
 	return &DBCreditPack{
-		Model:   db.Model{ID: pack.ID, CreatedAt: pack.CreatedAt, UpdatedAt: pack.UpdatedAt},
-		Code:    pack.Code,
-		Name:    pack.Name,
-		Credits: pack.Credits.Value(),
-		Active:  pack.Active,
+		Model:         db.Model{ID: pack.ID, CreatedAt: pack.CreatedAt, UpdatedAt: pack.UpdatedAt},
+		Code:          pack.Code,
+		Name:          pack.Name,
+		Credits:       pack.Credits.Value(),
+		Active:        pack.Active,
+		StripePriceID: pack.StripePriceID,
+		PriceAmount:   pack.PriceAmount,
+		Currency:      pack.Currency,
 	}, nil
 }
 
@@ -44,12 +50,15 @@ func (pack *DBCreditPack) ToDomainPack() (*credit.Pack, error) {
 	}
 
 	return &credit.Pack{
-		ID:        pack.ID,
-		Code:      pack.Code,
-		Name:      pack.Name,
-		Credits:   credits,
-		Active:    pack.Active,
-		CreatedAt: pack.CreatedAt,
-		UpdatedAt: pack.UpdatedAt,
+		ID:            pack.ID,
+		Code:          pack.Code,
+		Name:          pack.Name,
+		Credits:       credits,
+		Active:        pack.Active,
+		StripePriceID: pack.StripePriceID,
+		PriceAmount:   pack.PriceAmount,
+		Currency:      pack.Currency,
+		CreatedAt:     pack.CreatedAt,
+		UpdatedAt:     pack.UpdatedAt,
 	}, nil
 }

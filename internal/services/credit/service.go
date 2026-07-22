@@ -18,12 +18,14 @@ type UnitOfWork interface {
 
 type Service struct {
 	unitOfWork UnitOfWork
+	accounts   domain.AccountRepository
 	packs      domain.PackRepository
 }
 
-func NewService(unitOfWork UnitOfWork, packs domain.PackRepository) *Service {
+func NewService(unitOfWork UnitOfWork, accounts domain.AccountRepository, packs domain.PackRepository) *Service {
 	return &Service{
 		unitOfWork: unitOfWork,
+		accounts:   accounts,
 		packs:      packs,
 	}
 }

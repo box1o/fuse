@@ -4,7 +4,6 @@ import { Computer, Folder, Layers} from "lucide-react";
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ROUTES } from "@/shared/constants";
-import { PaymentsPage } from "@/features/payments";
 
 interface Route {
     name: string;

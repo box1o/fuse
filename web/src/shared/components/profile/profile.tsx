@@ -3,12 +3,23 @@ import { Button } from "@/shared/components/ui/button";
 import {
     DropdownMenu,
 } from "@/shared/components/ui";
+import { useState } from "react";
+import{
+    Coins,
+    CreditCard,
+
+} from "lucide-react";
 import { Avatar } from "@/shared/components/ui/avatar";
 import { useAuthActions, useAuthStore } from "@/features/auth";
 import { getInitials } from "@/shared/utils";
 
+import { CreditPurchaseModal } from "@/features/payments";
+import { useCreditBalance } from "@/features/payments";
+
 
 const Profile = () => {
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+    const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
 
     const { logout } = useAuthActions();
     //NOTE: Fallback user in case the is null
@@ -18,11 +29,21 @@ const Profile = () => {
         email: 'guest@gmail.com'
     }
 
+    const handleOpenCreditModal = () => {
+        setIsProfileMenuOpen(false);
 
+        // Radix must finish closing the dropdown before opening
+        // another modal layer.
+        window.setTimeout(() => {
+            setIsCreditModalOpen(true);
+        }, 0);
+    };
 
+    const {balance, isLoading: isLoadingBalance,} = useCreditBalance();
 
     return (
-        <DropdownMenu>
+        <>
+        <DropdownMenu open={isProfileMenuOpen} onOpenChange={setIsProfileMenuOpen}>
             <DropdownMenu.Trigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
                     <Avatar className="h-6 w-6">
@@ -33,7 +54,8 @@ const Profile = () => {
                     </Avatar>
                 </Button>
             </DropdownMenu.Trigger>
-            <DropdownMenu.Content align="center" className="max-w-48">
+            
+            <DropdownMenu.Content align="end" className="max-w-64" sideOffset={8}>
                 <DropdownMenu.Label className="font-normal">
                     <div className="flex items-center gap-3 p-2">
                         <Avatar className="h-6 w-6">
@@ -52,6 +74,40 @@ const Profile = () => {
                         </div>
                     </div>
                 </DropdownMenu.Label>
+                    <div className="mx-1 my-2 rounded-lg bg-muted/50 p-3">
+                        <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-center gap-2">
+                                <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-background">
+                                    <Coins className="size-4 text-muted-foreground" />
+                                </div>
+
+                                <div>
+                                    <p className="text-xs text-muted-foreground">
+                                        Credits
+                                    </p>
+
+                                    <p className="text-sm font-medium">
+                                        {isLoadingBalance
+                                            ? "Loading..."
+                                            : `${balance.toLocaleString()} available`}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <Button
+                            type="button"
+                            size="sm"
+                            className="mt-3 w-full"
+                            onClick={handleOpenCreditModal}
+                        >
+                            <CreditCard className="size-4" />
+                            Buy credits
+                        </Button>
+                    </div>
+
+                <DropdownMenu.Separator />
+
                 <DropdownMenu.Group>
                     <DropdownMenu.Item>
                         <User className="mr-2 h-4 w-4" />
@@ -66,6 +122,7 @@ const Profile = () => {
                         <span>Share</span>
                     </DropdownMenu.Item>
                 </DropdownMenu.Group>
+                <DropdownMenu.Separator />
                 <DropdownMenu.Item
                     onClick={() => logout()}
                     variant="destructive"
@@ -75,6 +132,11 @@ const Profile = () => {
                 </DropdownMenu.Item>
             </DropdownMenu.Content>
         </DropdownMenu>
+         <CreditPurchaseModal
+            open={isCreditModalOpen}
+            onOpenChange={setIsCreditModalOpen}
+        />
+        </>
     );
 }
 

@@ -10,7 +10,7 @@ import (
 	domainPayment "fuse/internal/domain/payment"
 	paymentService "fuse/internal/services/payment"
 
-	stripeSDK "github.com/stripe/stripe-go/v83"
+	stripeSDK "github.com/stripe/stripe-go/v86"
 )
 
 var _ paymentService.Provider = (*Client)(nil)

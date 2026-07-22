@@ -104,10 +104,20 @@ func (r *CreditPackRepository) ListActive(ctx context.Context) ([]*credit.Pack, 
 	var dbPacks []models.DBCreditPack
 
 	err := r.db.WithContext(ctx).
-		Where("active = ?", true).
+		Where(
+			`active = ?
+             AND stripe_price_id IS NOT NULL
+             AND stripe_price_id <> ?
+             AND price_amount > ?
+             AND currency IS NOT NULL
+             AND currency <> ?`,
+			true,
+			"",
+			0,
+			"",
+		).
 		Order("credits ASC").
 		Find(&dbPacks).Error
-
 	if err != nil {
 		return nil, err
 	}
@@ -140,11 +150,14 @@ func (r *CreditPackRepository) Update(ctx context.Context, pack *credit.Pack) er
 		Model(&models.DBCreditPack{}).
 		Where("id = ?", pack.ID).
 		Updates(map[string]any{
-			"code":       dbPack.Code,
-			"name":       dbPack.Name,
-			"credits":    dbPack.Credits,
-			"active":     dbPack.Active,
-			"updated_at": dbPack.UpdatedAt,
+			"code":            dbPack.Code,
+			"name":            dbPack.Name,
+			"credits":         dbPack.Credits,
+			"active":          dbPack.Active,
+			"stripe_price_id": dbPack.StripePriceID,
+			"price_amount":    dbPack.PriceAmount,
+			"currency":        dbPack.Currency,
+			"updated_at":      dbPack.UpdatedAt,
 		})
 
 	if result.Error != nil {
