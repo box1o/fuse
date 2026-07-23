@@ -11,7 +11,7 @@ type CreateCheckoutRequest struct {
 
 // CreateCheckoutResponse contains the checkout session information returned after a successful payment initialization.
 type CreateCheckoutResponse struct {
-	PaymentID   uuid.UUID `json:"payment_id"`
-	SessionID   string    `json:"session_id"`
-	CheckoutURL string    `json:"checkout_url"`
+	PaymentID uuid.UUID `json:"payment_id"`
+	SessionID string    `json:"session_id"`
+	URL       string    `json:"url"`
 }

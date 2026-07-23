@@ -26,10 +26,7 @@ const maxCheckoutRequestBodySize = 64 * 1024
 // @Failure		401	{object}	errors.HTTPError
 // @Failure		500	{object}	errors.HTTPError
 // @Router			/payments/checkout [post]
-func (h *Handler) CreateCheckout(
-	writer http.ResponseWriter,
-	request *http.Request,
-) {
+func (h *Handler) CreateCheckout(writer http.ResponseWriter, request *http.Request) {
 	var body CreateCheckoutRequest
 
 	if err := decodeCreateCheckoutRequest(writer, request, &body); err != nil {
@@ -67,9 +64,9 @@ func (h *Handler) CreateCheckout(
 	}
 
 	response := CreateCheckoutResponse{
-		PaymentID:   output.PaymentID,
-		SessionID:   output.SessionID,
-		CheckoutURL: output.CheckoutURL,
+		PaymentID: output.PaymentID,
+		SessionID: output.SessionID,
+		URL:       output.URL,
 	}
 
 	writer.Header().Set("Content-Type", "application/json")

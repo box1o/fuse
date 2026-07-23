@@ -19,12 +19,15 @@ type CreateCheckoutInput struct {
 }
 
 type CreateCheckoutOutput struct {
-	PaymentID   uuid.UUID
-	SessionID   string
-	CheckoutURL string
+	PaymentID uuid.UUID
+	SessionID string
+	URL       string
 }
 
-func (s *Service) CreateCheckout(ctx context.Context, input CreateCheckoutInput) (*CreateCheckoutOutput, error) {
+func (s *Service) CreateCheckout(
+	ctx context.Context,
+	input CreateCheckoutInput,
+) (*CreateCheckoutOutput, error) {
 	if input.OwnerID == uuid.Nil {
 		return nil, domainPayment.ErrOwnerIDRequired
 	}
@@ -86,7 +89,6 @@ func (s *Service) CreateCheckout(ctx context.Context, input CreateCheckoutInput)
 			CancelURL:      cancelURL,
 		},
 	)
-
 	if err != nil {
 		return nil, s.failPayment(
 			ctx,
@@ -112,9 +114,9 @@ func (s *Service) CreateCheckout(ctx context.Context, input CreateCheckoutInput)
 	}
 
 	return &CreateCheckoutOutput{
-		PaymentID:   payment.ID,
-		SessionID:   session.SessionID,
-		CheckoutURL: session.CheckoutURL,
+		PaymentID: payment.ID,
+		SessionID: session.SessionID,
+		URL:       session.URL,
 	}, nil
 }
 
@@ -139,7 +141,10 @@ func validatePrice(price *Price) error {
 	return nil
 }
 
-func validateCheckoutSession(payment *domainPayment.Payment, session *CheckoutSession) error {
+func validateCheckoutSession(
+	payment *domainPayment.Payment,
+	session *CheckoutSession,
+) error {
 	if session == nil {
 		return ErrCheckoutSessionCreationFailed
 	}
@@ -148,8 +153,11 @@ func validateCheckoutSession(payment *domainPayment.Payment, session *CheckoutSe
 		return domainPayment.ErrInvalidProvider
 	}
 
-	if strings.TrimSpace(session.SessionID) == "" ||
-		strings.TrimSpace(session.CheckoutURL) == "" {
+	if strings.TrimSpace(session.SessionID) == "" {
+		return ErrCheckoutSessionCreationFailed
+	}
+
+	if strings.TrimSpace(session.URL) == "" {
 		return ErrCheckoutSessionCreationFailed
 	}
 
@@ -168,7 +176,11 @@ func validateCheckoutSession(payment *domainPayment.Payment, session *CheckoutSe
 	return nil
 }
 
-func (s *Service) failPayment(ctx context.Context, payment *domainPayment.Payment, cause error) error {
+func (s *Service) failPayment(
+	ctx context.Context,
+	payment *domainPayment.Payment,
+	cause error,
+) error {
 	if failErr := payment.Fail(); failErr != nil {
 		return errors.Join(
 			cause,

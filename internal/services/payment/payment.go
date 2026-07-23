@@ -27,7 +27,7 @@ type CreateCheckoutSessionInput struct {
 type CheckoutSession struct {
 	Provider          domainPayment.Provider
 	SessionID         string
-	CheckoutURL       string
+	URL               string
 	ProviderPaymentID string
 	Amount            int64
 	Currency          string

@@ -21,7 +21,7 @@ interface CreateCheckoutRequest {
 interface CheckoutSessionResponse {
     payment_id: string;
     session_id: string;
-    checkout_url: string;
+    url: string;
 }
 
 interface ProjectUsageRequest {

@@ -1,16 +1,14 @@
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
+
 import { PAYMENTS_QUERY_KEYS } from "../../constants";
 import { paymentsService } from "../../services";
-import { usePaymentsStore } from "../../store";
 import type {
     CheckoutSessionResponse,
     CreateCheckoutRequest,
 } from "../../types";
 
 export const useCreateCheckoutSession = () => {
-    const { setCheckoutUrl, reset } = usePaymentsStore();
-
     const mutation = useMutation<
         CheckoutSessionResponse,
         Error,
@@ -20,15 +18,27 @@ export const useCreateCheckoutSession = () => {
 
         mutationFn: async (request) => {
             const creditPackId = request.creditPackId.trim();
+            const successUrl = request.successUrl.trim();
+            const cancelUrl = request.cancelUrl.trim();
 
             if (!creditPackId) {
                 throw new Error("Credit pack ID is required");
+            }
+
+            if (!successUrl) {
+                throw new Error("Success URL is required");
+            }
+
+            if (!cancelUrl) {
+                throw new Error("Cancel URL is required");
             }
 
             const response =
                 await paymentsService.createCheckoutSession({
                     ...request,
                     creditPackId,
+                    successUrl,
+                    cancelUrl,
                 });
 
             if (!response.success || !response.data) {
@@ -38,28 +48,33 @@ export const useCreateCheckoutSession = () => {
                 );
             }
 
-            return response.data;
-        },
+            const checkoutUrl = response.data.url?.trim();
 
-        onSuccess: (checkout) => {
-            setCheckoutUrl(checkout.checkout_url);
-            toast.success("Checkout session created");
+            if (!checkoutUrl) {
+                throw new Error(
+                    "The backend returned an empty Stripe checkout URL",
+                );
+            }
 
-            window.location.assign(checkout.checkout_url);
+            return {
+                ...response.data,
+                url: checkoutUrl,
+            };
         },
 
         onError: (error) => {
-            reset();
             toast.error(error.message);
         },
     });
 
     return {
-        createCheckout: mutation.mutate,
-        checkoutUrl: mutation.data?.checkout_url,
+        createCheckout: mutation.mutateAsync,
+        checkout: mutation.data,
         paymentId: mutation.data?.payment_id,
         sessionId: mutation.data?.session_id,
+        checkoutUrl: mutation.data?.url,
         isLoading: mutation.isPending,
         error: mutation.error,
+        resetCheckout: mutation.reset,
     };
 };

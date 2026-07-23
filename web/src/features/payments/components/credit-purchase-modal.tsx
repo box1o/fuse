@@ -22,10 +22,7 @@ interface CreditPurchaseModalProps {
     onOpenChange: (open: boolean) => void;
 }
 
-const CreditPurchaseModal = ({
-    open,
-    onOpenChange,
-}: CreditPurchaseModalProps) => {
+const CreditPurchaseModal = ({open,onOpenChange,}: CreditPurchaseModalProps) => {
     const [selectedPackId, setSelectedPackId] = useState<string | null>(
         null,
     );
@@ -40,13 +37,15 @@ const CreditPurchaseModal = ({
         createCheckout,
         error: checkoutError,
         isLoading: isCreatingCheckout,
+        resetCheckout,
     } = useCreateCheckoutSession();
 
     useEffect(() => {
         if (!open) {
             setSelectedPackId(null);
+            resetCheckout();
         }
-    }, [open]);
+    }, [open, resetCheckout]);
 
     useEffect(() => {
         if (
@@ -63,20 +62,28 @@ const CreditPurchaseModal = ({
         }
     }, [creditPacks, open, selectedPackId]);
 
-    const handlePurchase = (pack: CreditPack) => {
+    const handlePurchase = async (pack: CreditPack) => {
         if (isCreatingCheckout) {
             return;
         }
 
         setSelectedPackId(pack.id);
 
-        createCheckout({
-            creditPackId: pack.id,
-            successUrl: `${window.location.origin}/payments?checkout=success`,
-            cancelUrl: `${window.location.origin}/payments?checkout=cancelled`,
-        });
-    };
+        try {
+            const checkout = await createCheckout({
+                creditPackId: pack.id,
+                successUrl:
+                    `${window.location.origin}/payments/success` +
+                    "?session_id={CHECKOUT_SESSION_ID}",
+                cancelUrl: `${window.location.origin}/payments/cancel`,
+            });
 
+            window.location.assign(checkout.url);
+        } catch {
+            // The mutation displays the error through the hook.
+        }
+    };
+    
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <Dialog.Content className="overflow-hidden border-border/70 bg-background p-0 sm:max-w-5xl">
@@ -100,38 +107,33 @@ const CreditPurchaseModal = ({
                     {!isLoadingCreditPacks &&
                         !creditPacksError &&
                         creditPacks.length > 0 && (
-                            <div className="grid gap-4 md:grid-cols-3">
-                                {creditPacks.map((pack, index) => {
-                                    const isFeatured =
-                                        creditPacks.length >= 3 &&
-                                        index === 1;
+                            <>
+                                <div className="grid gap-4 md:grid-cols-3">
+                                    {creditPacks.map((pack, index) => {
+                                        const isFeatured =
+                                            creditPacks.length >= 3 && index === 1;
 
-                                    return (
-                                        <CreditPackCard
-                                            key={pack.id}
-                                            pack={pack}
-                                            isFeatured={isFeatured}
-                                            isSelected={
-                                                selectedPackId === pack.id
-                                            }
-                                            isLoading={
-                                                isCreatingCheckout &&
-                                                selectedPackId === pack.id
-                                            }
-                                            isDisabled={
-                                                isCreatingCheckout &&
-                                                selectedPackId !== pack.id
-                                            }
-                                            onSelect={() =>
-                                                setSelectedPackId(pack.id)
-                                            }
-                                            onPurchase={() =>
-                                                handlePurchase(pack)
-                                            }
-                                        />
-                                    );
-                                })}
-                            </div>
+                                        return (
+                                            <CreditPackCard
+                                                key={pack.id}
+                                                pack={pack}
+                                                isFeatured={isFeatured}
+                                                isSelected={selectedPackId === pack.id}
+                                                isLoading={
+                                                    isCreatingCheckout &&
+                                                    selectedPackId === pack.id
+                                                }
+                                                isDisabled={
+                                                    isCreatingCheckout &&
+                                                    selectedPackId !== pack.id
+                                                }
+                                                onSelect={() => setSelectedPackId(pack.id)}
+                                                onPurchase={() => handlePurchase(pack)}
+                                            />
+                                        );
+                                    })}
+                                </div>
+                            </>
                         )}
 
                     {checkoutError && (
@@ -142,7 +144,7 @@ const CreditPurchaseModal = ({
                         </div>
                     )}
 
-                    <ModalFooter />
+                   <ModalFooter />
                 </div>
             </Dialog.Content>
         </Dialog>
@@ -292,7 +294,7 @@ const CreditPackCard = ({
                     }}
                 >
                     {isLoading ? (
-                        "Opening Stripe..."
+                        "Preparing checkout..."
                     ) : (
                         <>
                             <Zap className="mr-2 size-4" />

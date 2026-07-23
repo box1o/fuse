@@ -2,6 +2,7 @@ package stripe
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -30,15 +31,19 @@ func (client *Client) CreateCheckoutSession(ctx context.Context, input paymentSe
 		Mode: stripeSDK.String(
 			string(stripeSDK.CheckoutSessionModePayment),
 		),
-		ClientReferenceID: stripeSDK.String(
-			input.PaymentID.String(),
-		),
+
 		SuccessURL: stripeSDK.String(
 			strings.TrimSpace(input.SuccessURL),
 		),
+
 		CancelURL: stripeSDK.String(
 			strings.TrimSpace(input.CancelURL),
 		),
+
+		ClientReferenceID: stripeSDK.String(
+			input.PaymentID.String(),
+		),
+
 		LineItems: []*stripeSDK.CheckoutSessionCreateLineItemParams{
 			{
 				Price: stripeSDK.String(
@@ -47,7 +52,9 @@ func (client *Client) CreateCheckoutSession(ctx context.Context, input paymentSe
 				Quantity: stripeSDK.Int64(1),
 			},
 		},
+
 		Metadata: metadata,
+
 		PaymentIntentData: &stripeSDK.CheckoutSessionCreatePaymentIntentDataParams{
 			Metadata: metadata,
 		},
@@ -55,17 +62,31 @@ func (client *Client) CreateCheckoutSession(ctx context.Context, input paymentSe
 
 	session, err := client.createCheckoutSession(ctx, params)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"%w: %v",
+		return nil, errors.Join(
 			paymentService.ErrCheckoutSessionCreationFailed,
 			err,
 		)
 	}
 
-	if session == nil ||
-		strings.TrimSpace(session.ID) == "" ||
-		strings.TrimSpace(session.URL) == "" {
-		return nil, paymentService.ErrCheckoutSessionCreationFailed
+	if session == nil {
+		return nil, fmt.Errorf(
+			"%w: Stripe returned a nil session",
+			paymentService.ErrCheckoutSessionCreationFailed,
+		)
+	}
+
+	if strings.TrimSpace(session.ID) == "" {
+		return nil, fmt.Errorf(
+			"%w: Stripe returned an empty session ID",
+			paymentService.ErrCheckoutSessionCreationFailed,
+		)
+	}
+
+	if strings.TrimSpace(session.URL) == "" {
+		return nil, fmt.Errorf(
+			"%w: Stripe returned an empty checkout URL",
+			paymentService.ErrCheckoutSessionCreationFailed,
+		)
 	}
 
 	providerPaymentID := ""
@@ -76,7 +97,7 @@ func (client *Client) CreateCheckoutSession(ctx context.Context, input paymentSe
 	return &paymentService.CheckoutSession{
 		Provider:          domainPayment.ProviderStripe,
 		SessionID:         session.ID,
-		CheckoutURL:       session.URL,
+		URL:               session.URL,
 		ProviderPaymentID: providerPaymentID,
 		Amount:            session.AmountTotal,
 		Currency: strings.ToUpper(
