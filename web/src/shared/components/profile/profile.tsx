@@ -1,21 +1,22 @@
-import { User, Settings, LogOut, UserPlus } from "lucide-react";
-import { Button } from "@/shared/components/ui/button";
-import {
-    DropdownMenu,
-} from "@/shared/components/ui";
 import { useState } from "react";
-import{
+import {
     Coins,
     CreditCard,
-
+    LogOut,
+    Settings,
+    User,
+    UserPlus,
 } from "lucide-react";
-import { Avatar } from "@/shared/components/ui/avatar";
+
 import { useAuthActions, useAuthStore } from "@/features/auth";
+import {
+    CreditPurchaseModal,
+    useCreditBalance,
+} from "@/features/payments";
+import { Avatar } from "@/shared/components/ui/avatar";
+import { Button } from "@/shared/components/ui/button";
+import { DropdownMenu } from "@/shared/components/ui";
 import { getInitials } from "@/shared/utils";
-
-import { CreditPurchaseModal } from "@/features/payments";
-import { useCreditBalance } from "@/features/payments";
-
 
 const Profile = () => {
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -74,23 +75,29 @@ const Profile = () => {
                         </div>
                     </div>
                 </DropdownMenu.Label>
-                    <div className="mx-1 my-2 rounded-lg bg-muted/50 p-3">
-                        <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-center gap-2">
-                                <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-background">
-                                    <Coins className="size-4 text-muted-foreground" />
-                                </div>
+                    <div className="mx-1 my-2 rounded-xl border bg-card p-3">
+                        <div className="flex items-center gap-3">
+                            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted">
+                                <Coins className="size-4 text-emerald-400" />
+                            </div>
 
-                                <div>
-                                    <p className="text-xs text-muted-foreground">
-                                        Credits
-                                    </p>
+                            <div className="min-w-0">
+                                <p className="text-xs font-medium text-muted-foreground">
+                                    Balance
+                                </p>
 
-                                    <p className="text-sm font-medium">
+                                <div className="mt-0.5 flex items-baseline gap-1.5">
+                                    <p className="truncate text-base font-semibold tracking-tight">
                                         {isLoadingBalance
                                             ? "Loading..."
-                                            : `${balance.toLocaleString()} available`}
+                                            : balance.toLocaleString()}
                                     </p>
+
+                                    {!isLoadingBalance && (
+                                        <span className="text-xs text-muted-foreground">
+                                            available
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -98,11 +105,12 @@ const Profile = () => {
                         <Button
                             type="button"
                             size="sm"
-                            className="mt-3 w-full"
+                            variant="outline"
+                            className="mt-3 w-full justify-center hover:border-emerald-500/40 hover:bg-emerald-500/5"
                             onClick={handleOpenCreditModal}
                         >
                             <CreditCard className="size-4" />
-                            Buy credits
+                            Buy
                         </Button>
                     </div>
 

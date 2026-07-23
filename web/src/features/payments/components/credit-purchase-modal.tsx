@@ -1,13 +1,21 @@
 import { useEffect, useState } from "react";
-import { Check, Coins } from "lucide-react";
+import {
+    Check,
+    Coins,
+    LockKeyhole,
+    ShieldCheck,
+    Sparkles,
+    Zap,
+} from "lucide-react";
 
 import { Button, Dialog, Skeleton } from "@/shared/components/ui";
 import { cn } from "@/shared/utils";
+
 import {
     useCreateCheckoutSession,
     useCreditPacks,
 } from "../hooks";
-
+import type { CreditPack } from "../types";
 
 interface CreditPurchaseModalProps {
     open: boolean;
@@ -34,29 +42,356 @@ const CreditPurchaseModal = ({
         isLoading: isCreatingCheckout,
     } = useCreateCheckoutSession();
 
-    const selectedPack = creditPacks.find(
-        (pack) => pack.id === selectedPackId,
-    );
-
     useEffect(() => {
         if (!open) {
             setSelectedPackId(null);
         }
     }, [open]);
 
-    const handleContinue = () => {
-        if (!selectedPack) {
+    useEffect(() => {
+        if (
+            open &&
+            creditPacks.length > 0 &&
+            selectedPackId === null
+        ) {
+            const defaultPackIndex =
+                creditPacks.length >= 3 ? 1 : 0;
+
+            setSelectedPackId(
+                creditPacks[defaultPackIndex]?.id ?? null,
+            );
+        }
+    }, [creditPacks, open, selectedPackId]);
+
+    const handlePurchase = (pack: CreditPack) => {
+        if (isCreatingCheckout) {
             return;
         }
 
+        setSelectedPackId(pack.id);
+
         createCheckout({
-            creditPackId: selectedPack.id,
+            creditPackId: pack.id,
             successUrl: `${window.location.origin}/payments?checkout=success`,
             cancelUrl: `${window.location.origin}/payments?checkout=cancelled`,
         });
     };
 
-    const formatPrice = (
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <Dialog.Content className="overflow-hidden border-border/70 bg-background p-0 sm:max-w-5xl">
+                <ModalHeader />
+
+                <div className="px-5 pb-6 sm:px-7 sm:pb-7">
+                    {isLoadingCreditPacks && <CreditPackSkeletons />}
+
+                    {!isLoadingCreditPacks && creditPacksError && (
+                        <ErrorMessage
+                            message={creditPacksError.message}
+                        />
+                    )}
+
+                    {!isLoadingCreditPacks &&
+                        !creditPacksError &&
+                        creditPacks.length === 0 && (
+                            <EmptyCreditPacks />
+                        )}
+
+                    {!isLoadingCreditPacks &&
+                        !creditPacksError &&
+                        creditPacks.length > 0 && (
+                            <div className="grid gap-4 md:grid-cols-3">
+                                {creditPacks.map((pack, index) => {
+                                    const isFeatured =
+                                        creditPacks.length >= 3 &&
+                                        index === 1;
+
+                                    return (
+                                        <CreditPackCard
+                                            key={pack.id}
+                                            pack={pack}
+                                            isFeatured={isFeatured}
+                                            isSelected={
+                                                selectedPackId === pack.id
+                                            }
+                                            isLoading={
+                                                isCreatingCheckout &&
+                                                selectedPackId === pack.id
+                                            }
+                                            isDisabled={
+                                                isCreatingCheckout &&
+                                                selectedPackId !== pack.id
+                                            }
+                                            onSelect={() =>
+                                                setSelectedPackId(pack.id)
+                                            }
+                                            onPurchase={() =>
+                                                handlePurchase(pack)
+                                            }
+                                        />
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                    {checkoutError && (
+                        <div className="mt-4">
+                            <ErrorMessage
+                                message={checkoutError.message}
+                            />
+                        </div>
+                    )}
+
+                    <ModalFooter />
+                </div>
+            </Dialog.Content>
+        </Dialog>
+    );
+};
+
+const ModalHeader = () => (
+    <div className="relative overflow-hidden px-5 pb-7 pt-7 sm:px-7">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,197,94,0.14),transparent_46%)]" />
+
+        <Dialog.Header className="relative items-center text-center">
+            <div className="flex size-12 items-center justify-center rounded-2xl border border-emerald-500/30 bg-emerald-500/10 shadow-[0_0_30px_rgba(34,197,94,0.18)]">
+                <Zap className="size-6 fill-emerald-400/20 text-emerald-400" />
+            </div>
+
+            <div className="space-y-2">
+                <Dialog.Title className="text-2xl font-semibold tracking-tight">
+                    Buy credits
+                </Dialog.Title>
+
+                <Dialog.Description className="mx-auto max-w-lg">
+                    Select a credit pack to increase your available
+                    compute balance.
+                </Dialog.Description>
+            </div>
+        </Dialog.Header>
+    </div>
+);
+
+interface CreditPackCardProps {
+    pack: CreditPack;
+    isFeatured: boolean;
+    isSelected: boolean;
+    isLoading: boolean;
+    isDisabled: boolean;
+    onSelect: () => void;
+    onPurchase: () => void;
+}
+
+const CreditPackCard = ({
+    pack,
+    isFeatured,
+    isSelected,
+    isLoading,
+    isDisabled,
+    onSelect,
+    onPurchase,
+}: CreditPackCardProps) => {
+    return (
+        <article
+            onClick={onSelect}
+            className={cn(
+                "relative flex min-h-[360px] cursor-pointer flex-col overflow-hidden rounded-2xl border bg-card/70 p-5 transition-all duration-200",
+                "hover:-translate-y-1 hover:border-emerald-500/40 hover:shadow-lg",
+                isSelected &&
+                    "border-emerald-500/70 shadow-[0_0_0_1px_rgba(34,197,94,0.2),0_18px_50px_rgba(34,197,94,0.10)]",
+                isFeatured &&
+                    "bg-gradient-to-b from-emerald-500/[0.08] via-card/80 to-card/70",
+            )}
+        >
+            {isFeatured && (
+                <FeaturedBadge />
+            )}
+
+            <div className="flex items-start justify-between">
+                <div
+                    className={cn(
+                        "flex size-12 items-center justify-center rounded-2xl border bg-muted/40",
+                        isSelected
+                            ? "border-emerald-500/40 bg-emerald-500/10"
+                            : "border-border",
+                    )}
+                >
+                    <Zap
+                        className={cn(
+                            "size-6",
+                            isSelected
+                                ? "fill-emerald-400/20 text-emerald-400"
+                                : "text-muted-foreground",
+                        )}
+                    />
+                </div>
+
+                <div
+                    className={cn(
+                        "flex size-6 items-center justify-center rounded-full border transition-colors",
+                        isSelected
+                            ? "border-emerald-500 bg-emerald-500 text-black"
+                            : "border-border bg-background",
+                    )}
+                >
+                    {isSelected && (
+                        <Check className="size-3.5 stroke-[3]" />
+                    )}
+                </div>
+            </div>
+
+            <div className="mt-7 text-center">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-400">
+                    {pack.name}
+                </p>
+
+                <div className="mt-3 flex items-center justify-center gap-2">
+                    <Coins className="size-5 text-emerald-400" />
+
+                    <p className="text-4xl font-semibold tracking-tight">
+                        {pack.credits.toLocaleString()}
+                    </p>
+                </div>
+
+                <p className="mt-1 text-sm text-muted-foreground">
+                    Credits
+                </p>
+            </div>
+
+            <div className="my-6 h-px bg-border/70" />
+
+            <div className="text-center">
+                <p className="text-sm leading-6 text-muted-foreground">
+                    {getPackDescription(pack.credits)}
+                </p>
+            </div>
+
+            <div className="mt-auto pt-7 text-center">
+                <p className="text-3xl font-semibold tracking-tight">
+                    {formatPrice(
+                        pack.price_amount,
+                        pack.currency,
+                    )}
+                </p>
+
+                <p className="mt-1 text-xs text-muted-foreground">
+                    One-time payment
+                </p>
+
+                <Button
+                    type="button"
+                    className={cn(
+                        "mt-5 w-full font-medium",
+                        "bg-emerald-500 text-black hover:bg-emerald-400",
+                        "shadow-[0_8px_24px_rgba(34,197,94,0.18)]",
+                    )}
+                    disabled={isDisabled || isLoading}
+                    onClick={(event) => {
+                        event.stopPropagation();
+                        onPurchase();
+                    }}
+                >
+                    {isLoading ? (
+                        "Opening Stripe..."
+                    ) : (
+                        <>
+                            <Zap className="mr-2 size-4" />
+                            Buy now
+                        </>
+                    )}
+                </Button>
+            </div>
+        </article>
+    );
+};
+
+const FeaturedBadge = () => (
+    <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-px">
+        <div className="flex items-center gap-1.5 rounded-b-xl border-x border-b border-emerald-500/40 bg-emerald-500 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-black">
+            <Sparkles className="size-3" />
+            Best value
+        </div>
+    </div>
+);
+
+const ModalFooter = () => (
+    <div className="mt-6 border-t border-border/70 pt-5">
+        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+                <ShieldCheck className="size-3.5 text-emerald-400" />
+                Secure payment
+            </span>
+
+            <span className="flex items-center gap-1.5">
+                <LockKeyhole className="size-3.5 text-emerald-400" />
+                Processed by Stripe
+            </span>
+
+            <span className="flex items-center gap-1.5">
+                <Coins className="size-3.5 text-emerald-400" />
+                Credits never expire
+            </span>
+        </div>
+    </div>
+);
+
+const CreditPackSkeletons = () => (
+    <div className="grid gap-4 md:grid-cols-3">
+        {[0, 1, 2].map((item) => (
+            <div
+                key={item}
+                className="flex min-h-[360px] flex-col rounded-2xl border bg-card/70 p-5"
+            >
+                <div className="flex justify-between">
+                    <Skeleton className="size-12 rounded-2xl" />
+                    <Skeleton className="size-6 rounded-full" />
+                </div>
+
+                <div className="mt-7 space-y-3 text-center">
+                    <Skeleton className="mx-auto h-3 w-20" />
+                    <Skeleton className="mx-auto h-10 w-32" />
+                    <Skeleton className="mx-auto h-4 w-16" />
+                </div>
+
+                <Skeleton className="my-6 h-px w-full" />
+                <Skeleton className="mx-auto h-12 w-40" />
+
+                <div className="mt-auto space-y-4 pt-7">
+                    <Skeleton className="mx-auto h-9 w-24" />
+                    <Skeleton className="h-10 w-full" />
+                </div>
+            </div>
+        ))}
+    </div>
+);
+
+interface ErrorMessageProps {
+    message: string;
+}
+
+const ErrorMessage = ({ message }: ErrorMessageProps) => (
+    <p className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
+        {message}
+    </p>
+);
+
+const EmptyCreditPacks = () => (
+    <div className="rounded-2xl border border-dashed p-10 text-center">
+        <div className="mx-auto flex size-11 items-center justify-center rounded-xl bg-muted">
+            <Coins className="size-5 text-muted-foreground" />
+        </div>
+
+        <p className="mt-4 font-medium">
+            No credit packs available
+        </p>
+
+        <p className="mt-1 text-sm text-muted-foreground">
+            Available credit packs will appear here.
+        </p>
+    </div>
+);
+
+const formatPrice = (
     amount: number,
     currency: string,
 ): string =>
@@ -65,145 +400,16 @@ const CreditPurchaseModal = ({
         currency,
     }).format(amount / 100);
 
-    const isCheckoutDisabled =
-        !selectedPack ||
-        isLoadingCreditPacks ||
-        isCreatingCheckout;
+const getPackDescription = (credits: number): string => {
+    if (credits <= 500) {
+        return "Suitable for light usage, testing, and smaller workloads.";
+    }
 
-    return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <Dialog.Content>
-                <Dialog.Header>
-                    <Dialog.Title>Buy credits</Dialog.Title>
+    if (credits <= 3000) {
+        return "A balanced option for regular projects and ongoing work.";
+    }
 
-                    <Dialog.Description>
-                        Select the credit pack you want to purchase.
-                    </Dialog.Description>
-                </Dialog.Header>
-
-                <div className="grid gap-3 py-2">
-                    {isLoadingCreditPacks && <CreditPackSkeletons />}
-
-                    {!isLoadingCreditPacks && creditPacksError && (
-                        <p className="rounded-lg border border-destructive/40 p-4 text-sm text-destructive">
-                            {creditPacksError.message}
-                        </p>
-                    )}
-
-                    {!isLoadingCreditPacks &&
-                        !creditPacksError &&
-                        creditPacks.length === 0 && (
-                            <p className="rounded-lg border p-4 text-sm text-muted-foreground">
-                                No credit packs are currently available.
-                            </p>
-                        )}
-
-                    {!isLoadingCreditPacks &&
-                        !creditPacksError &&
-                        creditPacks.map((pack) => {
-                        const isSelected = pack.id === selectedPackId;
-
-                        return (
-                            <button
-                                key={pack.id}
-                                type="button"
-                                disabled={isCreatingCheckout}
-                                onClick={() => setSelectedPackId(pack.id)}
-                                className={cn(
-                                    "flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-colors",
-                                    "hover:bg-accent",
-                                    "disabled:cursor-not-allowed disabled:opacity-60",
-                                    isSelected &&
-                                        "border-primary bg-accent",
-                                )}
-                            >
-                                <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted">
-                                    <Coins className="size-5" />
-                                </div>
-
-                                <div className="min-w-0 flex-1">
-                                    <p className="font-medium">
-                                        {pack.name}
-                                    </p>
-
-                                    <p className="text-sm text-muted-foreground">
-                                        {pack.credits.toLocaleString()} credits
-                                    </p>
-                                </div>
-                                <div className="shrink-0 text-right">
-                                    <p className="font-medium">
-                                        {formatPrice(
-                                            pack.price_amount,
-                                            pack.currency,
-                                        )}
-                                    </p>
-                                </div>
-
-                                <div
-                                    className={cn(
-                                        "flex size-5 items-center justify-center rounded-full border",
-                                        isSelected &&
-                                            "border-primary bg-primary text-primary-foreground",
-                                    )}
-                                >
-                                    {isSelected && (
-                                        <Check className="size-3" />
-                                    )}
-                                </div>
-                            </button>
-                        );
-                    })}
-
-                    {checkoutError && (
-                        <p className="rounded-lg border border-destructive/40 p-4 text-sm text-destructive">
-                            {checkoutError.message}
-                        </p>
-                    )}
-                </div>
-
-                <Dialog.Footer>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        disabled={isCreatingCheckout}
-                        onClick={() => onOpenChange(false)}
-                    >
-                        Cancel
-                    </Button>
-
-                    <Button
-                        type="button"
-                        disabled={isCheckoutDisabled}
-                        onClick={handleContinue}
-                    >
-                        {isCreatingCheckout
-                            ? "Opening Stripe..."
-                            : selectedPack
-                              ? `Continue with ${selectedPack.credits.toLocaleString()} credits`
-                              : "Select a pack"}
-                    </Button>
-                </Dialog.Footer>
-            </Dialog.Content>
-        </Dialog>
-    );
+    return "Designed for larger workloads and frequent compute usage.";
 };
-
-const CreditPackSkeletons = () => (
-    <>
-        {[0, 1, 2].map((item) => (
-            <div
-                key={item}
-                className="flex items-center gap-4 rounded-xl border p-4"
-            >
-                <Skeleton className="size-10 rounded-full" />
-
-                <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-24" />
-                </div>
-            </div>
-        ))}
-    </>
-);
 
 export { CreditPurchaseModal };
