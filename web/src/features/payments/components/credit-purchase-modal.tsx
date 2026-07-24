@@ -1,15 +1,7 @@
 import { useEffect, useState } from "react";
-import {
-    Check,
-    Coins,
-    LockKeyhole,
-    ShieldCheck,
-    Sparkles,
-    Zap,
-} from "lucide-react";
-
 import { Button, Dialog, Skeleton } from "@/shared/components/ui";
 import { cn } from "@/shared/utils";
+
 
 import {
     useCreateCheckoutSession,
@@ -85,11 +77,13 @@ const CreditPurchaseModal = ({open,onOpenChange,}: CreditPurchaseModalProps) => 
     };
     
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <Dialog.Content className="overflow-hidden border-border/70 bg-background p-0 sm:max-w-5xl">
-                <ModalHeader />
-
-                <div className="px-5 pb-6 sm:px-7 sm:pb-7">
+        <Dialog open={open} onOpenChange={onOpenChange} >
+            <Dialog.Content 
+                showCloseButton={false}
+                overlayClassName="bg-black/30 backdrop-blur-sm"
+                className="h-[70vh] w-[90vw] max-w-noneo verflow-visible border-0 bg-transparent p-0 shadow-none sm:max-w-6xl"
+            >
+                <div className="h-full px-10 py-10 sm:px-7 sm:py-8">
                     {isLoadingCreditPacks && <CreditPackSkeletons />}
 
                     {!isLoadingCreditPacks && creditPacksError && (
@@ -108,7 +102,7 @@ const CreditPurchaseModal = ({open,onOpenChange,}: CreditPurchaseModalProps) => 
                         !creditPacksError &&
                         creditPacks.length > 0 && (
                             <>
-                                <div className="grid gap-4 md:grid-cols-3">
+                                <div className="grid h-full gap-4 md:grid-cols-3">
                                     {creditPacks.map((pack, index) => {
                                         const isFeatured =
                                             creditPacks.length >= 3 && index === 1;
@@ -144,35 +138,11 @@ const CreditPurchaseModal = ({open,onOpenChange,}: CreditPurchaseModalProps) => 
                         </div>
                     )}
 
-                   <ModalFooter />
                 </div>
             </Dialog.Content>
         </Dialog>
     );
 };
-
-const ModalHeader = () => (
-    <div className="relative overflow-hidden px-5 pb-7 pt-7 sm:px-7">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,197,94,0.14),transparent_46%)]" />
-
-        <Dialog.Header className="relative items-center text-center">
-            <div className="flex size-12 items-center justify-center rounded-2xl border border-emerald-500/30 bg-emerald-500/10 shadow-[0_0_30px_rgba(34,197,94,0.18)]">
-                <Zap className="size-6 fill-emerald-400/20 text-emerald-400" />
-            </div>
-
-            <div className="space-y-2">
-                <Dialog.Title className="text-2xl font-semibold tracking-tight">
-                    Buy credits
-                </Dialog.Title>
-
-                <Dialog.Description className="mx-auto max-w-lg">
-                    Select a credit pack to increase your available
-                    compute balance.
-                </Dialog.Description>
-            </div>
-        </Dialog.Header>
-    </div>
-);
 
 interface CreditPackCardProps {
     pack: CreditPack;
@@ -184,80 +154,30 @@ interface CreditPackCardProps {
     onPurchase: () => void;
 }
 
-const CreditPackCard = ({
-    pack,
-    isFeatured,
-    isSelected,
-    isLoading,
-    isDisabled,
-    onSelect,
-    onPurchase,
-}: CreditPackCardProps) => {
+const CreditPackCard = ({ pack, isFeatured, isSelected, isLoading, isDisabled, onSelect, onPurchase}: CreditPackCardProps) => {
     return (
         <article
             onClick={onSelect}
             className={cn(
-                "relative flex min-h-[360px] cursor-pointer flex-col overflow-hidden rounded-2xl border bg-card/70 p-5 transition-all duration-200",
+                "relative flex min-h-[360px] cursor-pointer flex-col overflow-hidden rounded-2xl border bg-card p-5 transition-all duration-200",
                 "hover:-translate-y-1 hover:border-emerald-500/40 hover:shadow-lg",
                 isSelected &&
                     "border-emerald-500/70 shadow-[0_0_0_1px_rgba(34,197,94,0.2),0_18px_50px_rgba(34,197,94,0.10)]",
-                isFeatured &&
-                    "bg-gradient-to-b from-emerald-500/[0.08] via-card/80 to-card/70",
             )}
         >
             {isFeatured && (
                 <FeaturedBadge />
             )}
 
-            <div className="flex items-start justify-between">
-                <div
-                    className={cn(
-                        "flex size-12 items-center justify-center rounded-2xl border bg-muted/40",
-                        isSelected
-                            ? "border-emerald-500/40 bg-emerald-500/10"
-                            : "border-border",
-                    )}
-                >
-                    <Zap
-                        className={cn(
-                            "size-6",
-                            isSelected
-                                ? "fill-emerald-400/20 text-emerald-400"
-                                : "text-muted-foreground",
-                        )}
-                    />
-                </div>
-
-                <div
-                    className={cn(
-                        "flex size-6 items-center justify-center rounded-full border transition-colors",
-                        isSelected
-                            ? "border-emerald-500 bg-emerald-500 text-black"
-                            : "border-border bg-background",
-                    )}
-                >
-                    {isSelected && (
-                        <Check className="size-3.5 stroke-[3]" />
-                    )}
-                </div>
-            </div>
-
             <div className="mt-7 text-center">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-400">
-                    {pack.name}
-                </p>
-
                 <div className="mt-3 flex items-center justify-center gap-2">
-                    <Coins className="size-5 text-emerald-400" />
-
                     <p className="text-4xl font-semibold tracking-tight">
                         {pack.credits.toLocaleString()}
                     </p>
+                    <p>
+                        Credits
+                    </p>
                 </div>
-
-                <p className="mt-1 text-sm text-muted-foreground">
-                    Credits
-                </p>
             </div>
 
             <div className="my-6 h-px bg-border/70" />
@@ -297,7 +217,6 @@ const CreditPackCard = ({
                         "Preparing checkout..."
                     ) : (
                         <>
-                            <Zap className="mr-2 size-4" />
                             Buy now
                         </>
                     )}
@@ -310,29 +229,7 @@ const CreditPackCard = ({
 const FeaturedBadge = () => (
     <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-px">
         <div className="flex items-center gap-1.5 rounded-b-xl border-x border-b border-emerald-500/40 bg-emerald-500 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-black">
-            <Sparkles className="size-3" />
             Best value
-        </div>
-    </div>
-);
-
-const ModalFooter = () => (
-    <div className="mt-6 border-t border-border/70 pt-5">
-        <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-                <ShieldCheck className="size-3.5 text-emerald-400" />
-                Secure payment
-            </span>
-
-            <span className="flex items-center gap-1.5">
-                <LockKeyhole className="size-3.5 text-emerald-400" />
-                Processed by Stripe
-            </span>
-
-            <span className="flex items-center gap-1.5">
-                <Coins className="size-3.5 text-emerald-400" />
-                Credits never expire
-            </span>
         </div>
     </div>
 );
@@ -379,9 +276,6 @@ const ErrorMessage = ({ message }: ErrorMessageProps) => (
 
 const EmptyCreditPacks = () => (
     <div className="rounded-2xl border border-dashed p-10 text-center">
-        <div className="mx-auto flex size-11 items-center justify-center rounded-xl bg-muted">
-            <Coins className="size-5 text-muted-foreground" />
-        </div>
 
         <p className="mt-4 font-medium">
             No credit packs available
