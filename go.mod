@@ -13,6 +13,7 @@ require (
 	github.com/redis/go-redis/v9 v9.13.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.20.1
+	github.com/stripe/stripe-go/v86 v86.1.0
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.6
 	github.com/urfave/cli/v2 v2.3.0

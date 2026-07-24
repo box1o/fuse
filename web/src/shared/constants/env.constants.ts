@@ -5,6 +5,7 @@ interface Environment {
     readonly API_TIMEOUT?: number;
     readonly NODE_ENV: NodeEnv;
     readonly APPLICATION_NAME?: string;
+    readonly STRIPE_PUBLISHABLE_KEY: string;
 }
 
 const createEnv = (): Environment => {
@@ -14,12 +15,14 @@ const createEnv = (): Environment => {
         ? parseInt(import.meta.env.VITE_API_TIMEOUT, 10)
         : undefined;
     const applicationName = import.meta.env.VITE_APPLICATION_NAME || "Fuse";
+    const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "";
 
     return {
         API_URL: apiUrl,
         NODE_ENV: nodeEnv,
         API_TIMEOUT: apiTimeout,
         APPLICATION_NAME: applicationName,
+        STRIPE_PUBLISHABLE_KEY: stripePublishableKey,
     } as const;
 };
 

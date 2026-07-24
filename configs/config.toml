@@ -21,7 +21,7 @@ user = "postgres"
 password = ""
 name = "fintaxy"
 sslmode = "disable"
-migrate = false
+migrate = true
 
 [redis]
 host = "localhost"
@@ -64,3 +64,25 @@ same_site = "lax"
 from = "alexei"
 password = "1234"
 name = "Alexei"
+
+
+[stripe]
+secret_key = "sk_placeholder"
+webhook_secret = "whsec_placeholder"
+fuse_pro_price_id = "price_pro_placeholder"
+
+[stripe.credit_prices.credits_240]
+price_id = "price_credits_240_placeholder"
+amount = 500
+currency = "USD"
+
+[stripe.credit_prices.credits_2400]
+price_id = "price_credits_2400_placeholder"
+amount = 3650
+currency = "USD"
+
+[stripe.credit_prices.credits_5000]
+price_id = "price_credits_5000_placeholder"
+amount = 8550
+currency = "USD"
+

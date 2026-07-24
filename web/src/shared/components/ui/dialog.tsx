@@ -12,6 +12,7 @@ type DialogCloseProps = React.ComponentProps<typeof DialogPrimitive.Close>;
 type DialogOverlayProps = React.ComponentProps<typeof DialogPrimitive.Overlay>;
 type DialogContentProps = React.ComponentProps<typeof DialogPrimitive.Content> & {
     showCloseButton?: boolean;
+    overlayClassName?: string;
 };
 type DialogTitleProps = React.ComponentProps<typeof DialogPrimitive.Title>;
 type DialogDescriptionProps = React.ComponentProps<typeof DialogPrimitive.Description>;
@@ -50,11 +51,12 @@ const DialogContent: React.FC<DialogContentProps> = ({
     className,
     children,
     showCloseButton = true,
+    overlayClassName,
     ...props
 }) => {
     return (
         <DialogPortal>
-            <DialogOverlay />
+            <DialogOverlay className={overlayClassName} />
             <DialogPrimitive.Content
                 data-slot="dialog-content"
                 className={cn(

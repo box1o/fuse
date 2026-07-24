@@ -12,6 +12,8 @@ type Config struct {
 	Session     SessionConfig  `mapstructure:"session" validate:"required"`
 	Frontend    FrontendConfig `mapstructure:"frontend" validate:"required"`
 
+	Stripe StripeConfig `mapstructure:"stripe"`
+
 	Mail MailConfig `mapstructure:"mail" `
 }
 
@@ -86,4 +88,17 @@ type MailConfig struct {
 	From     string `mapstructure:"from" `
 	Password string `mapstructure:"password" `
 	Name     string `mapstructure:"name" `
+}
+
+type StripeConfig struct {
+	SecretKey     string                       `mapstructure:"secret_key" validate:"required"`
+	WebhookSecret string                       `mapstructure:"webhook_secret" validate:"required"`
+	ProPriceID    string                       `mapstructure:"pro_price_id" validate:"required"`
+	CreditPrices  map[string]StripePriceConfig `mapstructure:"credit_prices" validate:"required,min=1,dive"`
+}
+
+type StripePriceConfig struct {
+	PriceID  string `mapstructure:"price_id" validate:"required"`
+	Amount   int64  `mapstructure:"amount" validate:"required,min=1"`
+	Currency string `mapstructure:"currency" validate:"required,len=3,alpha"`
 }
