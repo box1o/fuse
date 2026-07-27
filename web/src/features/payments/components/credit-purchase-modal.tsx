@@ -160,9 +160,9 @@ const CreditPackCard = ({ pack, isFeatured, isSelected, isLoading, isDisabled, o
             onClick={onSelect}
             className={cn(
                 "relative flex min-h-[360px] cursor-pointer flex-col overflow-hidden rounded-2xl border bg-card p-5 transition-all duration-200",
-                "hover:-translate-y-1 hover:border-emerald-500/40 hover:shadow-lg",
+                "hover:-translate-y-1 hover:border-emerald-500/50 hover:shadow-lg",
                 isSelected &&
-                    "border-emerald-500/70 shadow-[0_0_0_1px_rgba(34,197,94,0.2),0_18px_50px_rgba(34,197,94,0.10)]",
+                    "border-emerald-500/100 drop-shadow-lg drop-shadow-emerald-500/25",
             )}
         >
             {isFeatured && (
@@ -204,8 +204,7 @@ const CreditPackCard = ({ pack, isFeatured, isSelected, isLoading, isDisabled, o
                     type="button"
                     className={cn(
                         "mt-5 w-full font-medium",
-                        "bg-emerald-500 text-black hover:bg-emerald-400",
-                        "shadow-[0_8px_24px_rgba(34,197,94,0.18)]",
+                        "bg-emerald-500 text-black font-bold hover:bg-emerald-300",
                     )}
                     disabled={isDisabled || isLoading}
                     onClick={(event) => {
@@ -228,7 +227,7 @@ const CreditPackCard = ({ pack, isFeatured, isSelected, isLoading, isDisabled, o
 
 const FeaturedBadge = () => (
     <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-px">
-        <div className="flex items-center gap-1.5 rounded-b-xl border-x border-b border-emerald-500/40 bg-emerald-500 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-black">
+        <div className="flex bg-emerald-500 border-4 rounded-b-lg px-3 py-1 text-[10px] font-bold uppercase text-black">
             Best value
         </div>
     </div>
@@ -309,3 +308,8 @@ const getPackDescription = (credits: number): string => {
 };
 
 export { CreditPurchaseModal };
+
+
+  {/* <div className="flex items-center gap-1.5 rounded-b-xl border-x border-b border-emerald-500/40 bg-emerald-500 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-black">
+            Best value
+        </div> */}
