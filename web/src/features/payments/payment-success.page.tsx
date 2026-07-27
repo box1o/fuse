@@ -5,7 +5,7 @@ import { Button } from "@/shared/components/ui";
 import { ROUTES } from "@/shared/constants/routes.constants";
 
 const PaymentSuccessPage = () => (
-    <main className="flex min-h-screen items-center justify-center bg-background px-6">
+    <main className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-6 backdrop-blur-sm">
         <section className="w-full max-w-md rounded-2xl border border-emerald-500/20 bg-card p-8 text-center">
             <CheckCircle2 className="mx-auto size-12 text-emerald-400" />
 
