@@ -157,20 +157,21 @@ jobs:
             --tail 50 \
             --follow false
 
-      - name: Build Fuse CLI release binaries
+      - name: Build Fuse CLI release archives
         shell: bash
         run: |
           set -euo pipefail
 
           mkdir -p dist
           for arch in amd64 arm64; do
+            mkdir -p "dist/$arch"
             GOOS=linux GOARCH="$arch" go build \
               -trimpath \
               -ldflags="-s -w" \
-              -o "dist/fuse-linux-$arch" \
+              -o "dist/$arch/fuse" \
               ./cli/cmd/fuse
+            tar -C "dist/$arch" -czf "dist/$arch.tar.gz" fuse
           done
-          sha256sum dist/fuse-linux-* > dist/checksums.txt
 
       - name: Publish CLI GitHub Release
         env:
@@ -180,12 +181,11 @@ jobs:
           set -euo pipefail
 
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" dist/fuse-linux-amd64 dist/fuse-linux-arm64 dist/checksums.txt --clobber
+            gh release upload "$RELEASE_TAG" dist/amd64.tar.gz dist/arm64.tar.gz --clobber
           else
             gh release create "$RELEASE_TAG" \
-              dist/fuse-linux-amd64 \
-              dist/fuse-linux-arm64 \
-              dist/checksums.txt \
+              dist/amd64.tar.gz \
+              dist/arm64.tar.gz \
               --target "$GITHUB_SHA" \
               --title "Fuse CLI $RELEASE_TAG" \
               --generate-notes

@@ -7,8 +7,11 @@ import (
 	"fuse/internal/infrastructure/provider"
 	"fuse/internal/infrastructure/redis"
 	"fuse/internal/infrastructure/session"
+	stripeInfrastructure "fuse/internal/infrastructure/stripe"
 	"fuse/pkg/log"
 
+	creditM "fuse/internal/domain/credit/models"
+	paymentM "fuse/internal/domain/payment/models"
 	userM "fuse/internal/domain/user/models"
 	workspaceM "fuse/internal/domain/workspace/models"
 
@@ -26,6 +29,10 @@ func (a *Application) setupDatabase() error {
 			&userM.DBUser{},
 			&workspaceM.DBWorkspace{},
 			&workspaceM.DBMember{},
+			&creditM.DBAccount{},
+			&creditM.DBCreditPack{},
+			&creditM.DBTransaction{},
+			&paymentM.DBPayment{},
 		); err != nil {
 			return fmt.Errorf("migration failed: %w", err)
 		}
@@ -46,6 +53,7 @@ func (a *Application) setupInfrastructure() error {
 		{"session manager", a.setupSession},
 		{"auth provider", a.setupAuthProvider},
 		{"event manager", a.setupEventManager},
+		{"stripe", a.setupStripe},
 	}
 
 	for _, s := range steps {
@@ -91,5 +99,30 @@ func (a *Application) setupEventManager() error {
 	if a.eventManager == nil {
 		return ErrEventManagerInit.WithDetail("failed to create event manager")
 	}
+	return nil
+}
+
+func (a *Application) setupStripe() error {
+	stripeClient, err := stripeInfrastructure.NewClient(
+		a.cfg.Stripe.SecretKey,
+	)
+	if err != nil {
+		return fmt.Errorf("create Stripe client: %w", err)
+	}
+
+	stripeWebhookParser, err :=
+		stripeInfrastructure.NewWebhookParser(
+			a.cfg.Stripe.WebhookSecret,
+		)
+	if err != nil {
+		return fmt.Errorf(
+			"create Stripe webhook parser: %w",
+			err,
+		)
+	}
+
+	a.stripeClient = stripeClient
+	a.stripeWebhookParser = stripeWebhookParser
+
 	return nil
 }

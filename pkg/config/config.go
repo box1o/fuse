@@ -107,8 +107,34 @@ func setupViper() error {
 		return fmt.Errorf("no config file found. Expected one of: %v in paths: %v", configNames, configPaths)
 	}
 
-	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.AutomaticEnv()
+
+	creditPriceBindings := map[string]string{
+		"stripe.secret_key":     "STRIPE_SECRET_KEY",
+		"stripe.webhook_secret": "STRIPE_WEBHOOK_SECRET",
+		"stripe.pro_price_id":   "STRIPE_PRO_PRICE_ID",
+
+		"stripe.credit_prices.credits_240.price_id":  "STRIPE_CREDITS_240_PRICE_ID",
+		"stripe.credit_prices.credits_240.amount":    "STRIPE_CREDITS_240_AMOUNT",
+		"stripe.credit_prices.credits_240.currency":  "STRIPE_CREDITS_240_CURRENCY",
+		"stripe.credit_prices.credits_2400.price_id": "STRIPE_CREDITS_2400_PRICE_ID",
+		"stripe.credit_prices.credits_2400.amount":   "STRIPE_CREDITS_2400_AMOUNT",
+		"stripe.credit_prices.credits_2400.currency": "STRIPE_CREDITS_2400_CURRENCY",
+		"stripe.credit_prices.credits_5000.price_id": "STRIPE_CREDITS_5000_PRICE_ID",
+		"stripe.credit_prices.credits_5000.amount":   "STRIPE_CREDITS_5000_AMOUNT",
+		"stripe.credit_prices.credits_5000.currency": "STRIPE_CREDITS_5000_CURRENCY",
+	}
+
+	for configKey, environmentVariable := range creditPriceBindings {
+		if err := viper.BindEnv(configKey, environmentVariable); err != nil {
+			return fmt.Errorf(
+				"failed to bind %s: %w",
+				configKey,
+				err,
+			)
+		}
+	}
 
 	return nil
 }
