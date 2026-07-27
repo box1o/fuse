@@ -1,4 +1,4 @@
-# Compute Server for the Woki Project
+# Fuse Server
 
 This module allows users to run GPU-intensive computational tasks on a remote server.
 

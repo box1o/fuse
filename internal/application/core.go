@@ -14,9 +14,7 @@ import (
 	stripeInfrastructure "fuse/internal/infrastructure/stripe"
 
 	"fuse/internal/services/auth"
-	computeSvc "fuse/internal/services/compute"
 	creditService "fuse/internal/services/credit"
-	deviceAuthSvc "fuse/internal/services/deviceauth"
 	eventsSvc "fuse/internal/services/events"
 	"fuse/internal/services/mail"
 	svcNotification "fuse/internal/services/notification"
@@ -25,16 +23,13 @@ import (
 
 	"fuse/internal/interfaces/server"
 	authH "fuse/internal/interfaces/server/auth"
-	computeH "fuse/internal/interfaces/server/compute"
 	creditH "fuse/internal/interfaces/server/credit"
-	deviceAuthH "fuse/internal/interfaces/server/deviceauth"
 	healthH "fuse/internal/interfaces/server/health"
 	mailH "fuse/internal/interfaces/server/mail"
 	authMW "fuse/internal/interfaces/server/middleware"
 	paymentH "fuse/internal/interfaces/server/payment"
 	wsH "fuse/internal/interfaces/server/workspace"
 
-	"fuse/internal/domain/compute"
 	domainCredit "fuse/internal/domain/credit"
 	domainPayment "fuse/internal/domain/payment"
 	"fuse/internal/domain/user"
@@ -59,7 +54,6 @@ type Application struct {
 	// Repositories
 	userRepo          user.Repository
 	workspaceRepo     workspace.Repository
-	computeRepo       compute.Repository
 	creditAccountRepo domainCredit.AccountRepository
 	creditPackRepo    domainCredit.PackRepository
 	creditUoW         *postgres.CreditUnitOfWork
@@ -70,24 +64,19 @@ type Application struct {
 	workspaceSvc    *svcWorkspace.Service
 	mailSvc         *mail.Service
 	notificationSvc *svcNotification.Service
-	computeSvc      *computeSvc.Service
-	deviceAuthSvc   *deviceAuthSvc.Service
 	creditSvc       *creditService.Service
 	paymentSvc      *paymentSvc.Service
 
 	// Middleware
 	authMW *authMW.AuthMiddleware
-	cliMW  *authMW.CLIMiddleware
 
 	// Handlers
-	healthHandler     *healthH.Handler
-	authHandler       *authH.Handler
-	workspaceHandler  *wsH.Handler
-	computeHandler    *computeH.Handler
-	deviceAuthHandler *deviceAuthH.Handler
-	mailHandler       *mailH.Handler
-	paymentHandler    *paymentH.Handler
-	creditHandler     *creditH.Handler
+	healthHandler    *healthH.Handler
+	authHandler      *authH.Handler
+	workspaceHandler *wsH.Handler
+	mailHandler      *mailH.Handler
+	paymentHandler   *paymentH.Handler
+	creditHandler    *creditH.Handler
 }
 
 func NewApplication() (*Application, error) {

@@ -29,10 +29,6 @@ export const router = createBrowserRouter([
                                 lazy: () => import("@/features/workspace/workspace.page"),
                             },
                             {
-                                path: ROUTES.COMPUTE,
-                                lazy: () => import("@/features/compute/compute.page"),
-                            },
-                            {
                                 path: ROUTES.SETTINGS,
                                 lazy: () => import("@/features/settings/settings.page"),
                             },
@@ -53,10 +49,6 @@ export const router = createBrowserRouter([
             {
                 path: ROUTES.AUTH,
                 lazy: () => import("@/features/auth/auth.page"),
-            },
-            {
-                path: ROUTES.DEVICE,
-                lazy: () => import("@/features/device/device.page"),
             },
             {
                 path: "*",

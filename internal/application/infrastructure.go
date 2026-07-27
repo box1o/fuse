@@ -10,7 +10,6 @@ import (
 	stripeInfrastructure "fuse/internal/infrastructure/stripe"
 	"fuse/pkg/log"
 
-	computeM "fuse/internal/domain/compute/models"
 	creditM "fuse/internal/domain/credit/models"
 	paymentM "fuse/internal/domain/payment/models"
 	userM "fuse/internal/domain/user/models"
@@ -30,8 +29,6 @@ func (a *Application) setupDatabase() error {
 			&userM.DBUser{},
 			&workspaceM.DBWorkspace{},
 			&workspaceM.DBMember{},
-			&computeM.DBNode{},
-			&computeM.DBCLICredential{},
 			&creditM.DBAccount{},
 			&creditM.DBCreditPack{},
 			&creditM.DBTransaction{},

@@ -101,6 +101,9 @@ site/
 *.backup
 ai.sh
 
+# Local rewrite reference
+.context/
+
 
 .venv
 *.egg-info
