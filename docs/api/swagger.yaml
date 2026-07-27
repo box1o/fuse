@@ -1,6 +1,6 @@
 basePath: /
 definitions:
-  fuse_pkg_errors.HTTPError:
+  errors.HTTPError:
     properties:
       code:
         type: string
@@ -9,7 +9,7 @@ definitions:
       message:
         type: string
     type: object
-  internal_interfaces_server_health.HealthResponse:
+  interfaces_server_health.HealthResponse:
     properties:
       services:
         additionalProperties:
@@ -24,7 +24,7 @@ definitions:
       version:
         type: string
     type: object
-  internal_interfaces_server_mail.SendIssueRequest:
+  interfaces_server_mail.SendIssueRequest:
     properties:
       body:
         type: string
@@ -33,7 +33,7 @@ definitions:
       to:
         type: string
     type: object
-  internal_interfaces_server_workspace.CreateWorkspaceRequest:
+  interfaces_server_workspace.CreateWorkspaceRequest:
     properties:
       name:
         type: string
@@ -59,7 +59,7 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+            $ref: '#/definitions/errors.HTTPError'
       summary: Start OAuth authentication
       tags:
       - authentication
@@ -79,11 +79,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+            $ref: '#/definitions/errors.HTTPError'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+            $ref: '#/definitions/errors.HTTPError'
       summary: Complete OAuth authentication
       tags:
       - authentication
@@ -102,11 +102,11 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+            $ref: '#/definitions/errors.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+            $ref: '#/definitions/errors.HTTPError'
       summary: End the current session
       tags:
       - authentication
@@ -124,7 +124,7 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+            $ref: '#/definitions/errors.HTTPError'
       summary: Get the authenticated user
       tags:
       - authentication
@@ -139,7 +139,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_interfaces_server_health.HealthResponse'
+            $ref: '#/definitions/interfaces_server_health.HealthResponse'
       summary: Health Check
       tags:
       - health
@@ -154,7 +154,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_interfaces_server_mail.SendIssueRequest'
+          $ref: '#/definitions/interfaces_server_mail.SendIssueRequest'
       produces:
       - application/json
       responses:
@@ -228,11 +228,11 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+            $ref: '#/definitions/errors.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+            $ref: '#/definitions/errors.HTTPError'
       summary: List owned workspaces
       tags:
       - workspaces
@@ -246,7 +246,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_interfaces_server_workspace.CreateWorkspaceRequest'
+          $ref: '#/definitions/interfaces_server_workspace.CreateWorkspaceRequest'
       produces:
       - application/json
       responses:
@@ -258,19 +258,19 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+            $ref: '#/definitions/errors.HTTPError'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+            $ref: '#/definitions/errors.HTTPError'
         "409":
           description: Conflict
           schema:
-            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+            $ref: '#/definitions/errors.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+            $ref: '#/definitions/errors.HTTPError'
       summary: Create a workspace
       tags:
       - workspaces
@@ -289,15 +289,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+            $ref: '#/definitions/errors.HTTPError'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+            $ref: '#/definitions/errors.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/fuse_pkg_errors.HTTPError'
+            $ref: '#/definitions/errors.HTTPError'
       summary: Delete a workspace
       tags:
       - workspaces

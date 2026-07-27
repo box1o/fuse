@@ -6,7 +6,7 @@ MAKEFLAGS += --silent
 
 .DEFAULT_GOAL := run
 
-.PHONY: run build cli cli-run cli-local cli-help tidy clean swagger swagger-fmt air
+.PHONY: run build cli cli-run tidy clean swagger swagger-fmt air
 
 run:
 	@go run -buildvcs=false cmd/api/main.go
@@ -25,13 +25,7 @@ cli:
 	@echo "✓ CLI built at $(CLI_BUILD_DIR)/$(CLI_BINARY)"
 
 cli-run: cli
-	@$(CLI_BUILD_DIR)/$(CLI_BINARY) $(ARGS)
-
-cli-local: cli
-	@$(CLI_BUILD_DIR)/$(CLI_BINARY) --api-url http://localhost:3000 $(ARGS)
-
-cli-help: cli
-	@$(CLI_BUILD_DIR)/$(CLI_BINARY) --help
+	@$(CLI_BUILD_DIR)/$(CLI_BINARY)
 
 tidy:
 	@echo "📦 Tidying up dependencies..."
@@ -47,12 +41,12 @@ clean:
 swagger:
 	@echo "🔄 Generating swagger documentation..."
 	@mkdir -p docs/api
-	@go run github.com/swaggo/swag/cmd/swag init -g cmd/api/docs.go -o docs/api --parseDependency --parseInternal
+	@go run github.com/swaggo/swag/cmd/swag@v1.16.6 init -g docs.go -d cmd/api,internal,pkg -o docs/api --parseDependency --parseInternal
 	@echo "✓ Swagger docs generated!"
 
 swagger-fmt:
 	@echo "🔧 Formatting swagger comments..."
-	@go run github.com/swaggo/swag/cmd/swag fmt -g cmd/api/docs.go
+	@go run github.com/swaggo/swag/cmd/swag@v1.16.6 fmt -g cmd/api/docs.go
 	@echo "✓ Swagger comments formatted!"
 
 air:

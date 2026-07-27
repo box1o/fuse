@@ -38,13 +38,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/fuse_pkg_errors.HTTPError"
+                            "$ref": "#/definitions/errors.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/fuse_pkg_errors.HTTPError"
+                            "$ref": "#/definitions/errors.HTTPError"
                         }
                     }
                 }
@@ -71,7 +71,7 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/fuse_pkg_errors.HTTPError"
+                            "$ref": "#/definitions/errors.HTTPError"
                         }
                     }
                 }
@@ -100,7 +100,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/fuse_pkg_errors.HTTPError"
+                            "$ref": "#/definitions/errors.HTTPError"
                         }
                     }
                 }
@@ -129,13 +129,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/fuse_pkg_errors.HTTPError"
+                            "$ref": "#/definitions/errors.HTTPError"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/fuse_pkg_errors.HTTPError"
+                            "$ref": "#/definitions/errors.HTTPError"
                         }
                     }
                 }
@@ -158,7 +158,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_interfaces_server_health.HealthResponse"
+                            "$ref": "#/definitions/interfaces_server_health.HealthResponse"
                         }
                     }
                 }
@@ -184,7 +184,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_interfaces_server_mail.SendIssueRequest"
+                            "$ref": "#/definitions/interfaces_server_mail.SendIssueRequest"
                         }
                     }
                 ],
@@ -293,13 +293,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/fuse_pkg_errors.HTTPError"
+                            "$ref": "#/definitions/errors.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/fuse_pkg_errors.HTTPError"
+                            "$ref": "#/definitions/errors.HTTPError"
                         }
                     }
                 }
@@ -323,7 +323,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_interfaces_server_workspace.CreateWorkspaceRequest"
+                            "$ref": "#/definitions/interfaces_server_workspace.CreateWorkspaceRequest"
                         }
                     }
                 ],
@@ -338,25 +338,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/fuse_pkg_errors.HTTPError"
+                            "$ref": "#/definitions/errors.HTTPError"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/fuse_pkg_errors.HTTPError"
+                            "$ref": "#/definitions/errors.HTTPError"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "$ref": "#/definitions/fuse_pkg_errors.HTTPError"
+                            "$ref": "#/definitions/errors.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/fuse_pkg_errors.HTTPError"
+                            "$ref": "#/definitions/errors.HTTPError"
                         }
                     }
                 }
@@ -385,19 +385,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/fuse_pkg_errors.HTTPError"
+                            "$ref": "#/definitions/errors.HTTPError"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/fuse_pkg_errors.HTTPError"
+                            "$ref": "#/definitions/errors.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/fuse_pkg_errors.HTTPError"
+                            "$ref": "#/definitions/errors.HTTPError"
                         }
                     }
                 }
@@ -405,7 +405,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "fuse_pkg_errors.HTTPError": {
+        "errors.HTTPError": {
             "type": "object",
             "properties": {
                 "code": {
@@ -419,7 +419,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_interfaces_server_health.HealthResponse": {
+        "interfaces_server_health.HealthResponse": {
             "type": "object",
             "properties": {
                 "services": {
@@ -442,7 +442,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_interfaces_server_mail.SendIssueRequest": {
+        "interfaces_server_mail.SendIssueRequest": {
             "type": "object",
             "properties": {
                 "body": {
@@ -456,7 +456,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_interfaces_server_workspace.CreateWorkspaceRequest": {
+        "interfaces_server_workspace.CreateWorkspaceRequest": {
             "type": "object",
             "properties": {
                 "name": {
