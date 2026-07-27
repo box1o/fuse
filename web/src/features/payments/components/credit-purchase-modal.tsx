@@ -304,7 +304,7 @@ const getPackDescription = (credits: number): string => {
         return "A balanced option for regular projects and ongoing work.";
     }
 
-    return "Designed for larger workloads and frequent compute usage.";
+    return "Designed for larger workloads and frequent usage.";
 };
 
 export { CreditPurchaseModal };

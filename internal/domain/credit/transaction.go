@@ -18,8 +18,8 @@ const (
 type TransactionSource string
 
 const (
-	TransactionSourcePurchase   TransactionSource = "purchase"
-	TransactionSourceComputeJob TransactionSource = "compute_job"
+	TransactionSourcePurchase TransactionSource = "purchase"
+	TransactionSourceUsage    TransactionSource = "usage"
 )
 
 type Transaction struct {
@@ -30,7 +30,7 @@ type Transaction struct {
 	Amount    Amount            `json:"amount"`
 
 	// ReferenceID points to the internal entity that caused the transaction.
-	// Examples: payment ID, compute job ID, refund ID.
+	// Examples: payment ID, usage ID, refund ID.
 	ReferenceID string `json:"reference_id,omitempty"`
 
 	// ExternalReference stores a provider identifier when applicable.
@@ -106,7 +106,7 @@ func (transactionType TransactionType) IsValid() bool {
 func (transactionSource TransactionSource) IsValid() bool {
 	switch transactionSource {
 	case TransactionSourcePurchase,
-		TransactionSourceComputeJob:
+		TransactionSourceUsage:
 		return true
 	default:
 		return false
@@ -123,11 +123,11 @@ func validateTransactionCombination(
 		return nil
 
 	case transactionType == TransactionTypeSpend &&
-		transactionSource == TransactionSourceComputeJob:
+		transactionSource == TransactionSourceUsage:
 		return nil
 
 	case transactionType == TransactionTypeRefund &&
-		transactionSource == TransactionSourceComputeJob:
+		transactionSource == TransactionSourceUsage:
 		return nil
 
 	default:
