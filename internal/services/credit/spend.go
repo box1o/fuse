@@ -46,7 +46,7 @@ func (s *Service) Spend(ctx context.Context, input SpendInput) error {
 				domain.NewTransactionInput{
 					AccountID:      account.ID,
 					Type:           domain.TransactionTypeSpend,
-					Source:         domain.TransactionSourceComputeJob,
+					Source:         domain.TransactionSourceUsage,
 					Amount:         input.Amount,
 					ReferenceID:    input.ReferenceID,
 					IdempotencyKey: input.IdempotencyKey,
@@ -69,7 +69,7 @@ func (s *Service) Spend(ctx context.Context, input SpendInput) error {
 	)
 
 	if stdErrors.Is(err, domain.ErrTransactionAlreadyExists) {
-		// Retrying the same compute-job charge must not spend twice.
+		// Retrying the same usage charge must not spend twice.
 		return nil
 	}
 
