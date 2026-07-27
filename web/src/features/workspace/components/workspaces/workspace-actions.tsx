@@ -19,7 +19,7 @@ const WorkspaceActions: React.FC<WorspaceActionsProps> = ({
             <DropdownMenu.Trigger asChild>
                 <Button
                     variant="ghost"
-                    className="ml-auto h-8"
+                    className="h-8"
                     onClick={(e) => e.stopPropagation()}
                 >
                     <EllipsisVertical className="h-4 w-4" />

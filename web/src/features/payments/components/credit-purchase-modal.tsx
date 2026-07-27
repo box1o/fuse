@@ -81,9 +81,9 @@ const CreditPurchaseModal = ({open,onOpenChange,}: CreditPurchaseModalProps) => 
             <Dialog.Content 
                 showCloseButton={false}
                 overlayClassName="bg-black/30 backdrop-blur-sm"
-                className="h-[70vh] w-[90vw] max-w-noneo verflow-visible border-0 bg-transparent p-0 shadow-none sm:max-w-6xl"
+                className="max-h-[calc(100vh-2rem)] overflow-y-auto border-0 bg-transparent p-0 shadow-none sm:max-w-6xl"
             >
-                <div className="h-full px-10 py-10 sm:px-7 sm:py-8">
+                <div className="px-10 py-10 sm:px-7 sm:py-8">
                     {isLoadingCreditPacks && <CreditPackSkeletons />}
 
                     {!isLoadingCreditPacks && creditPacksError && (
@@ -102,7 +102,7 @@ const CreditPurchaseModal = ({open,onOpenChange,}: CreditPurchaseModalProps) => 
                         !creditPacksError &&
                         creditPacks.length > 0 && (
                             <>
-                                <div className="grid h-full gap-4 md:grid-cols-3">
+                                <div className="grid gap-4 md:grid-cols-3">
                                     {creditPacks.map((pack, index) => {
                                         const isFeatured =
                                             creditPacks.length >= 3 && index === 1;
@@ -159,7 +159,7 @@ const CreditPackCard = ({ pack, isFeatured, isSelected, isLoading, isDisabled, o
         <article
             onClick={onSelect}
             className={cn(
-                "relative flex min-h-[360px] cursor-pointer flex-col overflow-hidden rounded-2xl border bg-card p-5 transition-all duration-200",
+                "relative flex min-h-[540px] max-h-[560px] cursor-pointer flex-col overflow-hidden rounded-2xl border bg-card p-5 transition-all duration-200",
                 "hover:-translate-y-1 hover:border-emerald-500/50 hover:shadow-lg",
                 isSelected &&
                     "border-emerald-500/100 drop-shadow-lg drop-shadow-emerald-500/25",
@@ -238,7 +238,7 @@ const CreditPackSkeletons = () => (
         {[0, 1, 2].map((item) => (
             <div
                 key={item}
-                className="flex min-h-[360px] flex-col rounded-2xl border bg-card/70 p-5"
+                className="flex min-h-[540px] max-h-[560px] flex-col rounded-2xl border bg-card/70 p-5"
             >
                 <div className="flex justify-between">
                     <Skeleton className="size-12 rounded-2xl" />

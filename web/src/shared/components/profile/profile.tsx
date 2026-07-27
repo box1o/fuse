@@ -1,16 +1,21 @@
 import { useState } from "react";
-import { CreditCard, LogOut, Settings, User, UserPlus } from "lucide-react";
+import { CreditCard, Layers, LogOut, Settings, UserPlus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import { useAuthActions, useAuthStore } from "@/features/auth";
 import { CreditPurchaseModal, useCreditBalance } from "@/features/payments";
 import { Avatar } from "@/shared/components/ui/avatar";
 import { Button } from "@/shared/components/ui/button";
 import { DropdownMenu } from "@/shared/components/ui";
+import { ROUTES } from "@/shared/constants";
 import { getInitials } from "@/shared/utils";
+import { ShareWorkspaceDialog } from "./share-workspace-dialog";
 
 const Profile = () => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isCreditModalOpen, setIsCreditModalOpen] = useState(false);
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
   const { logout } = useAuthActions();
   //NOTE: Fallback user in case the is null
@@ -27,6 +32,14 @@ const Profile = () => {
     // another modal layer.
     window.setTimeout(() => {
       setIsCreditModalOpen(true);
+    }, 0);
+  };
+
+  const handleOpenShareDialog = () => {
+    setIsProfileMenuOpen(false);
+
+    window.setTimeout(() => {
+      setIsShareDialogOpen(true);
     }, 0);
   };
 
@@ -86,17 +99,17 @@ const Profile = () => {
           </DropdownMenu.Item>
 
           <DropdownMenu.Group>
-            <DropdownMenu.Item>
-              <User className="mr-2 h-4 w-4" />
-              <span>Projects</span>
+            <DropdownMenu.Item onClick={() => navigate(ROUTES.WORKSPACE)}>
+              <Layers className="mr-2 h-4 w-4" />
+              <span>Workspace</span>
+            </DropdownMenu.Item>
+            <DropdownMenu.Item onClick={handleOpenShareDialog}>
+              <UserPlus className="mr-2 h-4 w-4" />
+              <span>Share</span>
             </DropdownMenu.Item>
             <DropdownMenu.Item>
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
-            </DropdownMenu.Item>
-            <DropdownMenu.Item>
-              <UserPlus className="mr-2 h-4 w-4" />
-              <span>Share</span>
             </DropdownMenu.Item>
           </DropdownMenu.Group>
           <DropdownMenu.Separator />
@@ -109,6 +122,10 @@ const Profile = () => {
       <CreditPurchaseModal
         open={isCreditModalOpen}
         onOpenChange={setIsCreditModalOpen}
+      />
+      <ShareWorkspaceDialog
+        open={isShareDialogOpen}
+        onOpenChange={setIsShareDialogOpen}
       />
     </>
   );

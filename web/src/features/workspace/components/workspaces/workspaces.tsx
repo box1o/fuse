@@ -69,11 +69,13 @@ const Workspaces: React.FC<WorkspacesProps> = ({ onRowClick }) => {
         },
         {
             id: "actions",
-            header: "Actions",
+            header: () => <div className="text-right">Actions</div>,
             cell: ({ row }) => {
                 const workspace = row.original;
                 return (
-                    <WorkspaceActions handleDeleteWorkspace={handleDeleteWorkspace} workspace={workspace} />
+                    <div className="flex justify-end">
+                        <WorkspaceActions handleDeleteWorkspace={handleDeleteWorkspace} workspace={workspace} />
+                    </div>
                 );
             },
         },
