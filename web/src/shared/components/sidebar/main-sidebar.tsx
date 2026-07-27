@@ -14,7 +14,7 @@ interface Route {
 const routes: Route[] = [
     { name: "Projects", path: ROUTES.PROJECTS, icon: <Folder size={8} /> },
     { name: "Workspace", path: ROUTES.WORKSPACE, icon: <Layers size={8} /> },
-    { name: "Compute", path: ROUTES.COMPUTE, icon: <Computer size={8} /> }
+    { name: "Compute", path: ROUTES.COMPUTE, icon: <Computer size={8} /> },
 ];
 
 const MainSidebar = () => {

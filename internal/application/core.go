@@ -11,25 +11,32 @@ import (
 	"fuse/internal/infrastructure/provider"
 	"fuse/internal/infrastructure/redis"
 	"fuse/internal/infrastructure/session"
+	stripeInfrastructure "fuse/internal/infrastructure/stripe"
 
 	"fuse/internal/services/auth"
 	computeSvc "fuse/internal/services/compute"
+	creditService "fuse/internal/services/credit"
 	deviceAuthSvc "fuse/internal/services/deviceauth"
 	eventsSvc "fuse/internal/services/events"
 	"fuse/internal/services/mail"
 	svcNotification "fuse/internal/services/notification"
+	paymentSvc "fuse/internal/services/payment"
 	svcWorkspace "fuse/internal/services/workspace"
 
 	"fuse/internal/interfaces/server"
 	authH "fuse/internal/interfaces/server/auth"
 	computeH "fuse/internal/interfaces/server/compute"
+	creditH "fuse/internal/interfaces/server/credit"
 	deviceAuthH "fuse/internal/interfaces/server/deviceauth"
 	healthH "fuse/internal/interfaces/server/health"
 	mailH "fuse/internal/interfaces/server/mail"
 	authMW "fuse/internal/interfaces/server/middleware"
+	paymentH "fuse/internal/interfaces/server/payment"
 	wsH "fuse/internal/interfaces/server/workspace"
 
 	"fuse/internal/domain/compute"
+	domainCredit "fuse/internal/domain/credit"
+	domainPayment "fuse/internal/domain/payment"
 	"fuse/internal/domain/user"
 	"fuse/internal/domain/workspace"
 )
@@ -41,15 +48,22 @@ type Application struct {
 	eventManager *eventsSvc.Service
 
 	// Infrastructure
-	db       *postgres.PostgresDB
-	redis    *redis.RedisClient
-	authProv *provider.AuthProvider
-	sessMgr  *session.Manager
+	db                  *postgres.PostgresDB
+	redis               *redis.RedisClient
+	authProv            *provider.AuthProvider
+	sessMgr             *session.Manager
+	stripeClient        *stripeInfrastructure.Client
+	stripeWebhookParser *stripeInfrastructure.WebhookParser
+	paymentPriceCatalog paymentSvc.PriceCatalog
 
 	// Repositories
-	userRepo      user.Repository
-	workspaceRepo workspace.Repository
-	computeRepo   compute.Repository
+	userRepo          user.Repository
+	workspaceRepo     workspace.Repository
+	computeRepo       compute.Repository
+	creditAccountRepo domainCredit.AccountRepository
+	creditPackRepo    domainCredit.PackRepository
+	creditUoW         *postgres.CreditUnitOfWork
+	paymentRepo       domainPayment.Repository
 
 	// Services
 	authSvc         *auth.Service
@@ -58,6 +72,8 @@ type Application struct {
 	notificationSvc *svcNotification.Service
 	computeSvc      *computeSvc.Service
 	deviceAuthSvc   *deviceAuthSvc.Service
+	creditSvc       *creditService.Service
+	paymentSvc      *paymentSvc.Service
 
 	// Middleware
 	authMW *authMW.AuthMiddleware
@@ -70,6 +86,8 @@ type Application struct {
 	computeHandler    *computeH.Handler
 	deviceAuthHandler *deviceAuthH.Handler
 	mailHandler       *mailH.Handler
+	paymentHandler    *paymentH.Handler
+	creditHandler     *creditH.Handler
 }
 
 func NewApplication() (*Application, error) {
