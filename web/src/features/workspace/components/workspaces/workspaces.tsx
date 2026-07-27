@@ -4,7 +4,7 @@ import React from "react";
 import { useDeleteWorkspace } from "../../hooks/api/workspace.delete";
 import { useListWorkspaces } from "../../hooks/api/workspace.list";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Badge, Input } from "@/shared/components";
+import { Input } from "@/shared/components";
 import formatDate from "../../utils/workspace.utils";
 import { WorkspaceActions } from "./workspace-actions";
 import { DataTable, ViewOptions } from "../tables";
