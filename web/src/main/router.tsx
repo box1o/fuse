@@ -25,6 +25,10 @@ export const router = createBrowserRouter([
                                 lazy: () => import("@/features/projects/projects.page"),
                             },
                             {
+                                path: ROUTES.COMPUTIG,
+                                lazy: () => import("@/features/computing/computing.page"),
+                            },
+                            {
                                 path: ROUTES.WORKSPACE,
                                 lazy: () => import("@/features/workspace/workspace.page"),
                             },

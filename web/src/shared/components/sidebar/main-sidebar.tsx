@@ -1,6 +1,6 @@
 import { Sidebar } from "@/shared/components/ui/sidebar";
 import { Button } from "@/shared/components/ui/button";
-import { Folder } from "lucide-react";
+import { Folder  , Computer} from "lucide-react";
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ROUTES } from "@/shared/constants";
@@ -13,6 +13,7 @@ interface Route {
 
 const routes: Route[] = [
     { name: "Projects", path: ROUTES.PROJECTS, icon: <Folder size={8} /> },
+    { name: "Computing", path: ROUTES.COMPUTIG, icon: <Computer size={8} /> },
 ];
 
 const MainSidebar = () => {
