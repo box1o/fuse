@@ -7,6 +7,7 @@ import (
 	"fuse/internal/services/notification"
 	paymentService "fuse/internal/services/payment"
 	svcWorkspace "fuse/internal/services/workspace"
+	computeService "fuse/internal/services/compute"
 )
 
 func (a *Application) setupServices() error {
@@ -17,6 +18,7 @@ func (a *Application) setupServices() error {
 	a.notificationSvc = notification.NewService(a.cfg)
 	a.creditSvc = creditService.NewService(a.creditUoW, a.creditAccountRepo, a.creditPackRepo)
 	a.paymentSvc = paymentService.NewService(a.paymentRepo, a.creditSvc, a.creditSvc, a.paymentPriceCatalog, a.stripeClient)
+	a.computeSvc = computeService.NewService(a.computeRepo)
 
 	return nil
 }

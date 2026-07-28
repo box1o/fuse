@@ -17,6 +17,7 @@ func (a *Application) setupRepositories() error {
 	a.paymentRepo = postgres.NewPaymentRepository(a.db.DB)
 	a.paymentPriceCatalog = postgres.NewPaymentPriceCatalog(a.creditPackRepo)
 	a.creditAccountRepo = postgres.NewCreditAccountRepository(a.db.DB)
+	a.computeRepo = postgres.NewComputeRepository(a.db.DB)
 
 	return nil
 }

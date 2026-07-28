@@ -9,6 +9,89 @@ definitions:
       message:
         type: string
     type: object
+  fuse_internal_domain_compute.Capabilities:
+    properties:
+      cpu_cores:
+        example: 8
+        minimum: 1
+        type: integer
+      gpu_count:
+        example: 1
+        minimum: 0
+        type: integer
+      memory_mb:
+        example: 16384
+        minimum: 1
+        type: integer
+      npu_supported:
+        example: false
+        type: boolean
+    type: object
+  fuse_internal_domain_compute.Node:
+    properties:
+      capabilities:
+        $ref: '#/definitions/fuse_internal_domain_compute.Capabilities'
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      owner_id:
+        type: string
+      status:
+        $ref: '#/definitions/fuse_internal_domain_compute.NodeStatus'
+      updated_at:
+        type: string
+      workspace_id:
+        type: string
+    type: object
+  fuse_internal_domain_compute.NodeStatus:
+    enum:
+    - pending
+    - online
+    - offline
+    - disabled
+    type: string
+    x-enum-varnames:
+    - NodeStatusPending
+    - NodeStatusOnline
+    - NodeStatusOffline
+    - NodeStatusDisabled
+  interfaces_server_compute.CreateNodeRequest:
+    properties:
+      capabilities:
+        $ref: '#/definitions/fuse_internal_domain_compute.Capabilities'
+      name:
+        example: development-node
+        type: string
+      workspace_id:
+        example: 9f99eadd-7206-45ad-b284-8031019c39bc
+        type: string
+    type: object
+  interfaces_server_compute.RenameNodeRequest:
+    properties:
+      name:
+        example: production-node
+        type: string
+    type: object
+  interfaces_server_compute.UpdateNodeCapabilitiesRequest:
+    properties:
+      capabilities:
+        $ref: '#/definitions/fuse_internal_domain_compute.Capabilities'
+    type: object
+  interfaces_server_compute.UpdateNodeStatusRequest:
+    properties:
+      status:
+        allOf:
+        - $ref: '#/definitions/fuse_internal_domain_compute.NodeStatus'
+        enum:
+        - pending
+        - online
+        - offline
+        - disabled
+        example: online
+    type: object
   interfaces_server_health.HealthResponse:
     properties:
       services:
@@ -146,6 +229,298 @@ paths:
       summary: Get the authenticated user
       tags:
       - authentication
+  /compute/node:
+    get:
+      description: Returns all compute nodes owned by the authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/fuse_internal_domain_compute.Node'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+      summary: List owned compute nodes
+      tags:
+      - compute
+    post:
+      consumes:
+      - application/json
+      description: Creates a compute node owned by the authenticated user.
+      parameters:
+      - description: Compute node details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/interfaces_server_compute.CreateNodeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/fuse_internal_domain_compute.Node'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+      summary: Create compute node
+      tags:
+      - compute
+  /compute/node/{nodeID}:
+    delete:
+      description: Permanently deletes a compute node owned by the authenticated user.
+      parameters:
+      - description: Compute node ID
+        format: uuid
+        in: path
+        name: nodeID
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+      summary: Delete compute node
+      tags:
+      - compute
+    get:
+      description: Returns a compute node owned by the authenticated user.
+      parameters:
+      - description: Compute node ID
+        format: uuid
+        in: path
+        name: nodeID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/fuse_internal_domain_compute.Node'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+      summary: Get compute node
+      tags:
+      - compute
+  /compute/node/{nodeID}/capabilities:
+    patch:
+      consumes:
+      - application/json
+      description: Changes the hardware capabilities of a compute node owned by the
+        authenticated user.
+      parameters:
+      - description: Compute node ID
+        format: uuid
+        in: path
+        name: nodeID
+        required: true
+        type: string
+      - description: New compute node capabilities
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/interfaces_server_compute.UpdateNodeCapabilitiesRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/fuse_internal_domain_compute.Node'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+      summary: Update compute node capabilities
+      tags:
+      - compute
+  /compute/node/{nodeID}/name:
+    patch:
+      consumes:
+      - application/json
+      description: Changes the name of a compute node owned by the authenticated user.
+      parameters:
+      - description: Compute node ID
+        format: uuid
+        in: path
+        name: nodeID
+        required: true
+        type: string
+      - description: New compute node name
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/interfaces_server_compute.RenameNodeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/fuse_internal_domain_compute.Node'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+      summary: Rename compute node
+      tags:
+      - compute
+  /compute/node/{nodeID}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Changes the status of a compute node owned by the authenticated
+        user.
+      parameters:
+      - description: Compute node ID
+        format: uuid
+        in: path
+        name: nodeID
+        required: true
+        type: string
+      - description: New compute node status
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/interfaces_server_compute.UpdateNodeStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/fuse_internal_domain_compute.Node'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+      summary: Update compute node status
+      tags:
+      - compute
+  /compute/node/workspace/{workspaceID}:
+    get:
+      description: Returns compute nodes in a workspace that are owned by the authenticated
+        user.
+      parameters:
+      - description: Workspace ID
+        format: uuid
+        in: path
+        name: workspaceID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/fuse_internal_domain_compute.Node'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.HTTPError'
+      summary: List workspace compute nodes
+      tags:
+      - compute
   /health:
     get:
       consumes:
