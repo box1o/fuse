@@ -114,4 +114,5 @@ func (s *Server) getTimeoutOrDefault(configured, defaultTimeout time.Duration) t
 
 func (s *Server) logStartup(addr string) {
 	log.Info("🚀 Server starting on %s", addr)
+	log.Info("📖 Swagger UI available at http://%s/swagger/index.html", addr)
 }

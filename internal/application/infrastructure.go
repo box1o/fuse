@@ -14,6 +14,7 @@ import (
 	paymentM "fuse/internal/domain/payment/models"
 	userM "fuse/internal/domain/user/models"
 	workspaceM "fuse/internal/domain/workspace/models"
+	computeM "fuse/internal/domain/compute/models"
 
 	eventsSvc "fuse/internal/services/events"
 )
@@ -33,6 +34,7 @@ func (a *Application) setupDatabase() error {
 			&creditM.DBCreditPack{},
 			&creditM.DBTransaction{},
 			&paymentM.DBPayment{},
+			&computeM.DBNode{},
 		); err != nil {
 			return fmt.Errorf("migration failed: %w", err)
 		}
