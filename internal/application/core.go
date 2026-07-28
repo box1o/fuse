@@ -14,6 +14,8 @@ import (
 	stripeInfrastructure "fuse/internal/infrastructure/stripe"
 
 	"fuse/internal/services/auth"
+
+	computeService "fuse/internal/services/compute"
 	creditService "fuse/internal/services/credit"
 	eventsSvc "fuse/internal/services/events"
 	"fuse/internal/services/mail"
@@ -23,6 +25,7 @@ import (
 
 	"fuse/internal/interfaces/server"
 	authH "fuse/internal/interfaces/server/auth"
+	computeH "fuse/internal/interfaces/server/compute"
 	creditH "fuse/internal/interfaces/server/credit"
 	healthH "fuse/internal/interfaces/server/health"
 	mailH "fuse/internal/interfaces/server/mail"
@@ -30,6 +33,7 @@ import (
 	paymentH "fuse/internal/interfaces/server/payment"
 	wsH "fuse/internal/interfaces/server/workspace"
 
+	domainCompute "fuse/internal/domain/compute"
 	domainCredit "fuse/internal/domain/credit"
 	domainPayment "fuse/internal/domain/payment"
 	"fuse/internal/domain/user"
@@ -58,6 +62,7 @@ type Application struct {
 	creditPackRepo    domainCredit.PackRepository
 	creditUoW         *postgres.CreditUnitOfWork
 	paymentRepo       domainPayment.Repository
+	computeRepo       domainCompute.Repository
 
 	// Services
 	authSvc         *auth.Service
@@ -66,6 +71,7 @@ type Application struct {
 	notificationSvc *svcNotification.Service
 	creditSvc       *creditService.Service
 	paymentSvc      *paymentSvc.Service
+	computeSvc      *computeService.Service
 
 	// Middleware
 	authMW *authMW.AuthMiddleware
@@ -77,6 +83,7 @@ type Application struct {
 	mailHandler      *mailH.Handler
 	paymentHandler   *paymentH.Handler
 	creditHandler    *creditH.Handler
+	computeHandler   *computeH.Handler
 }
 
 func NewApplication() (*Application, error) {

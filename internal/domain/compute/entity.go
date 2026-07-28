@@ -29,10 +29,10 @@ func (status NodeStatus) IsValid() bool {
 }
 
 type Capabilities struct {
-	CPUCores     int  `json:"cpu_cores"`
-	MemoryMB     int  `json:"memory_mb"`
-	GPUCount     int  `json:"gpu_count"`
-	NPUSupported bool `json:"npu_supported"`
+	CPUCores int `json:"cpu_cores" example:"8" minimum:"1"`
+	MemoryMB int `json:"memory_mb" example:"16384" minimum:"1"`
+	GPUCount int `json:"gpu_count" example:"1" minimum:"0"`
+	NPUSupported bool `json:"npu_supported" example:"false"`
 }
 
 func (capabilities Capabilities) Validate() error {
