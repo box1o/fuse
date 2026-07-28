@@ -1,1 +1,1 @@
-export { default as useComputingStore } from "./computing.store";
+export { default as useNodeStore } from "./computing.store";

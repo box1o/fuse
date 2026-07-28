@@ -1,1 +1,1 @@
-export type { Computing } from "./computing.types";
+export type { Computing } from "./node.types";

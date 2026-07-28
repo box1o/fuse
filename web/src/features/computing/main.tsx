@@ -9,7 +9,6 @@ const Main = () => {
                     <Browser />
 
 
-                    <div className="mt-4 min-h-[1000px] rounded-xl bg-neutral-900" />
                 </main>
 
                 <MachineListSkeleton/>
