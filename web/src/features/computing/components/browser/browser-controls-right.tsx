@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Maximize, Captions, Settings } from "lucide-react";
 
-const BrowserControlRight: React.FC = () => {
+const BrowserControlsRight: React.FC = () => {
   return (
     <div className="flex justify-between gap-4">
       <Captions />
@@ -11,4 +11,4 @@ const BrowserControlRight: React.FC = () => {
   );
 };
 
-export { BrowserControlRight };
+export { BrowserControlsRight };

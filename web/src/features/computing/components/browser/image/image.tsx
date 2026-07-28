@@ -1,9 +1,9 @@
-const RdpViewer = () => {
+const ImageViewer = () => {
     return (
         <div className="flex h-full w-full items-center justify-center bg-card">
-            RDP viewer
+            Image viewer
         </div>
     );
 };
 
-export { RdpViewer };
+export { ImageViewer };

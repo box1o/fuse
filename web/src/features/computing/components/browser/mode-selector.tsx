@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Check, ChevronDown, Monitor, Video } from "lucide-react";
+import { Check, ChevronDown, Monitor, Video, ImageIcon } from "lucide-react";
 
 import { Button } from "@/shared/components/ui/button";
 import { DropdownMenu } from "@/shared/components/ui";
@@ -27,6 +27,11 @@ const MODE_OPTIONS: Array<{
         label: "RDP",
         icon: Monitor,
     },
+    {
+        value: "image",
+        label: "Image",
+        icon: ImageIcon,
+    }
 ];
 
 const ModeSelector: React.FC<ModeSelectorProps> = ({

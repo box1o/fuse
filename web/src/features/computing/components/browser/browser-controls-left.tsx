@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Play } from "lucide-react";
 
-const BrowserControlLeft: React.FC = () => {
+const BrowserControlsLeft: React.FC = () => {
   return (
       <div className="flex justify-between gap-4">
             <Play />
@@ -10,4 +10,4 @@ const BrowserControlLeft: React.FC = () => {
   );
 };
 
-export { BrowserControlLeft };
+export { BrowserControlsLeft };
