@@ -165,13 +165,25 @@ jobs:
           mkdir -p dist
           for arch in amd64 arm64; do
             mkdir -p "dist/$arch"
-            GOOS=linux GOARCH="$arch" go build \
+            CGO_ENABLED=0 GOOS=linux GOARCH="$arch" go build \
+              -buildvcs=false \
               -trimpath \
-              -ldflags="-s -w" \
+              -ldflags="-s -w -X fuse/cli/internal/commands.Version=$RELEASE_TAG" \
               -o "dist/$arch/fuse" \
               ./cli/cmd/fuse
             tar -C "dist/$arch" -czf "dist/$arch.tar.gz" fuse
           done
+
+      - name: Verify Fuse CLI release archives
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test "$(tar -tzf dist/amd64.tar.gz)" = "fuse"
+          test "$(tar -tzf dist/arm64.tar.gz)" = "fuse"
+          file dist/amd64/fuse | grep -q "x86-64"
+          file dist/arm64/fuse | grep -q "ARM aarch64"
+          dist/amd64/fuse --version
 
       - name: Publish CLI GitHub Release
         env:
