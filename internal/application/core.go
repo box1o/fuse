@@ -14,6 +14,7 @@ import (
 	stripeInfrastructure "fuse/internal/infrastructure/stripe"
 
 	"fuse/internal/services/auth"
+	deviceAuthService "fuse/internal/services/deviceauth"
 
 	computeService "fuse/internal/services/compute"
 	creditService "fuse/internal/services/credit"
@@ -27,12 +28,14 @@ import (
 	authH "fuse/internal/interfaces/server/auth"
 	computeH "fuse/internal/interfaces/server/compute"
 	creditH "fuse/internal/interfaces/server/credit"
+	deviceAuthH "fuse/internal/interfaces/server/deviceauth"
 	healthH "fuse/internal/interfaces/server/health"
 	mailH "fuse/internal/interfaces/server/mail"
 	authMW "fuse/internal/interfaces/server/middleware"
 	paymentH "fuse/internal/interfaces/server/payment"
 	wsH "fuse/internal/interfaces/server/workspace"
 
+	domainCLI "fuse/internal/domain/cli"
 	domainCompute "fuse/internal/domain/compute"
 	domainCredit "fuse/internal/domain/credit"
 	domainPayment "fuse/internal/domain/payment"
@@ -63,9 +66,11 @@ type Application struct {
 	creditUoW         *postgres.CreditUnitOfWork
 	paymentRepo       domainPayment.Repository
 	computeRepo       domainCompute.Repository
+	cliCredentialRepo domainCLI.Repository
 
 	// Services
 	authSvc         *auth.Service
+	deviceAuthSvc   *deviceAuthService.Service
 	workspaceSvc    *svcWorkspace.Service
 	mailSvc         *mail.Service
 	notificationSvc *svcNotification.Service
@@ -77,13 +82,14 @@ type Application struct {
 	authMW *authMW.AuthMiddleware
 
 	// Handlers
-	healthHandler    *healthH.Handler
-	authHandler      *authH.Handler
-	workspaceHandler *wsH.Handler
-	mailHandler      *mailH.Handler
-	paymentHandler   *paymentH.Handler
-	creditHandler    *creditH.Handler
-	computeHandler   *computeH.Handler
+	healthHandler     *healthH.Handler
+	authHandler       *authH.Handler
+	deviceAuthHandler *deviceAuthH.Handler
+	workspaceHandler  *wsH.Handler
+	mailHandler       *mailH.Handler
+	paymentHandler    *paymentH.Handler
+	creditHandler     *creditH.Handler
+	computeHandler    *computeH.Handler
 }
 
 func NewApplication() (*Application, error) {

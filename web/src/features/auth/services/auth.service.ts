@@ -1,14 +1,7 @@
-import type { ServiceResult } from "@/shared/types";
+import axios from "axios";
+import type { HttpError, ServiceResult } from "@/shared/types";
 import type { LogoutResponse, User } from "../types/auth.types";
 import { api } from "@/shared/services";
-
-
-// r.Get("/{provider}", h.BeginAuth)
-// r.Get("/{provider}/callback", h.AuthCallback)
-// r.Post("/logout", h.Logout)
-// r.Get("/status", h.GetAuthStatus)
-
-
 
 const AUTH_ROUTES = {
     OAUTH: (provider: string) => `/auth/${provider}`,
@@ -21,9 +14,7 @@ class AuthService {
         try {
             const { data } = await api.get<User>(AUTH_ROUTES.STATUS);
             return { data, success: true };
-        } catch (error: any) {
-
-            console.log("Auth status error:", error)
+        } catch (error: unknown) {
             return {
                 error: this.handleError(error, "get auth status"),
                 success: false,
@@ -35,7 +26,7 @@ class AuthService {
         try {
             const { data } = await api.post<LogoutResponse>(AUTH_ROUTES.LOGOUT);
             return { data, success: true };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 error: this.handleError(error, "logout"),
                 success: false,
@@ -43,22 +34,32 @@ class AuthService {
         }
     }
 
-    startOAuth(provider: string): void {
+    startOAuth(provider: string, returnTo?: string): void {
         if (!provider?.trim()) {
             throw new Error("Provider is required");
         }
-        window.location.href = this.getLoginURL(provider);
+
+        window.location.href = this.getLoginURL(provider, returnTo);
     }
 
+    getLoginURL(provider: string, returnTo?: string): string {
+        const loginURL = new URL(`${api.defaults.baseURL}${AUTH_ROUTES.OAUTH(provider)}`);
+        if (returnTo) {
+            loginURL.searchParams.set("return_to", returnTo);
+        }
 
-    getLoginURL(provider: string): string {
-        return `${api.defaults.baseURL}${AUTH_ROUTES.OAUTH(provider)}`;
+        return loginURL.toString();
     }
 
-    private handleError(error: any, operation: string): string {
-        return error?.response?.data?.message ||
-            error?.message ||
-            `Failed to ${operation}`;
+    private handleError(error: unknown, operation: string): string {
+        if (axios.isAxiosError<HttpError>(error)) {
+            return error.response?.data.message || error.response?.data.detail || error.message;
+        }
+        if (error instanceof Error) {
+            return error.message;
+        }
+
+        return `Failed to ${operation}`;
     }
 }
 

@@ -2,17 +2,19 @@ package application
 
 import (
 	"fuse/internal/services/auth"
+	computeService "fuse/internal/services/compute"
 	creditService "fuse/internal/services/credit"
+	deviceAuthService "fuse/internal/services/deviceauth"
 	"fuse/internal/services/mail"
 	"fuse/internal/services/notification"
 	paymentService "fuse/internal/services/payment"
 	svcWorkspace "fuse/internal/services/workspace"
-	computeService "fuse/internal/services/compute"
 )
 
 func (a *Application) setupServices() error {
 	a.workspaceSvc = svcWorkspace.NewService(a.workspaceRepo)
 	a.authSvc = auth.NewService(a.userRepo, a.sessMgr, a.workspaceSvc, a.eventManager.Bus())
+	a.deviceAuthSvc = deviceAuthService.NewService(a.cfg, a.redis, a.cliCredentialRepo, a.userRepo)
 	a.mailSvc = mail.NewService(a.cfg, a.eventManager)
 	a.mailSvc.Setup()
 	a.notificationSvc = notification.NewService(a.cfg)
