@@ -2,6 +2,8 @@ BINARY_NAME=fuse
 BUILD_DIR=bin
 CLI_BINARY=fuse
 CLI_BUILD_DIR=$(BUILD_DIR)/cli
+CLI_VERSION?=dev
+CLI_LDFLAGS=-s -w -X fuse/cli/internal/commands.Version=$(CLI_VERSION)
 MAKEFLAGS += --silent
 
 .DEFAULT_GOAL := run
@@ -21,7 +23,7 @@ build:
 cli:
 	@echo "🔨 Building Fuse CLI..."
 	@mkdir -p $(CLI_BUILD_DIR)
-	@go build -buildvcs=false -o $(CLI_BUILD_DIR)/$(CLI_BINARY) ./cli/cmd/fuse
+	@go build -buildvcs=false -trimpath -ldflags "$(CLI_LDFLAGS)" -o $(CLI_BUILD_DIR)/$(CLI_BINARY) ./cli/cmd/fuse
 	@echo "✓ CLI built at $(CLI_BUILD_DIR)/$(CLI_BINARY)"
 
 cli-run: cli
