@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+set -uo pipefail
+
+readonly RUNE_GUEST_QUEUE_DIR=${RUNE_GUEST_QUEUE_DIR:-/var/lib/rune/queue}
+readonly RUNE_GUEST_RUNNING_DIR=${RUNE_GUEST_RUNNING_DIR:-/var/lib/rune/running}
+readonly RUNE_GUEST_COMPLETED_DIR=${RUNE_GUEST_COMPLETED_DIR:-/var/lib/rune/completed}
+
+mkdir -p -- "${RUNE_GUEST_QUEUE_DIR}" "${RUNE_GUEST_RUNNING_DIR}" "${RUNE_GUEST_COMPLETED_DIR}" || exit
+
+shopt -s nullglob
+for queued_job in "${RUNE_GUEST_QUEUE_DIR}"/*.job; do
+    job_name=${queued_job##*/}
+    running_job="${RUNE_GUEST_RUNNING_DIR}/${job_name}"
+    completed_job="${RUNE_GUEST_COMPLETED_DIR}/${job_name}"
+    mv -- "${queued_job}" "${running_job}" || continue
+    bash "${running_job}"
+    job_status=$?
+    printf '%s\n' "${job_status}" >"${completed_job}.status"
+    mv -- "${running_job}" "${completed_job}"
+done

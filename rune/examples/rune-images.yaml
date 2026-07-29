@@ -1,0 +1,64 @@
+version: 1
+
+runtime:
+  vm:
+    ensure_images: true
+
+kernels:
+  linux-6.1:
+    version: "6.1"
+    architecture: x86_64
+    source: firecracker-ci
+
+images:
+  ci-worker:
+    version: v1
+    architecture: x86_64
+    size: 4G
+    system:
+      distribution: debian
+      release: bookworm
+    kernel: linux-6.1
+    packages:
+      - git
+      - curl
+      - jq
+      - build-essential
+    capabilities:
+      - ci
+
+  cpp-worker:
+    version: v1
+    architecture: x86_64
+    size: 6G
+    system:
+      distribution: debian
+      release: bookworm
+    kernel: linux-6.1
+    packages:
+      - git
+      - build-essential
+      - clang
+      - cmake
+      - ninja-build
+      - gdb
+    capabilities:
+      - ci
+      - cpp
+
+  render-worker:
+    version: v1
+    architecture: x86_64
+    size: 12G
+    system:
+      distribution: debian
+      release: bookworm
+    kernel: linux-6.1
+    packages:
+      - blender
+      - ffmpeg
+      - python3
+    capabilities:
+      - rendering
+    environment:
+      RUNE_WORKER_TYPE: render

@@ -1,0 +1,190 @@
+#!/usr/bin/env bash
+
+set -uo pipefail
+
+readonly RUNE_GUEST_LIB=${RUNE_GUEST_LIB:-/usr/local/lib/rune/shell/lib/init.sh}
+readonly RUNE_GUEST_LOG_DIR=${RUNE_GUEST_LOG_DIR:-/var/log/rune/jobs}
+
+if [[ -w /dev/ttyS0 ]]; then
+    exec 2> >(tee -a /dev/ttyS0 >&2)
+fi
+
+if [[ -r "${RUNE_GUEST_LIB}" ]]; then
+    # shellcheck source=/dev/null
+    if ! source "${RUNE_GUEST_LIB}"; then
+        printf 'rune-guest: unable to load library: %s\n' "${RUNE_GUEST_LIB}" >&2
+        exit 1
+    fi
+fi
+
+guest::usage()
+{
+    cat <<'EOF'
+Usage:
+    rune-guest run --id ID [--workdir PATH] -- command [arguments...]
+    rune-guest logs ID
+    rune-guest status ID
+    rune-guest list
+EOF
+}
+
+guest::valid_id()
+{
+    [[ ${1:-} =~ ^[a-zA-Z0-9][a-zA-Z0-9._-]{0,127}$ ]]
+}
+
+guest::require_id()
+{
+    if ! guest::valid_id "${1:-}"; then
+        printf 'Invalid job ID: %s\n' "${1:-}" >&2
+        return 2
+    fi
+}
+
+guest::directory()
+{
+    printf '%s/%s\n' "${RUNE_GUEST_LOG_DIR}" "${1:-}"
+}
+
+guest::run()
+{
+    local __id__=
+    local __workdir__=/workspace
+
+    while (($# > 0)); do
+        case "$1" in
+            --id)
+                [[ $# -ge 2 ]] || {
+                    printf 'rune-guest run: --id requires a value\n' >&2
+                    return 2
+                }
+                __id__=$2
+                shift 2
+                ;;
+            --workdir)
+                [[ $# -ge 2 ]] || {
+                    printf 'rune-guest run: --workdir requires a value\n' >&2
+                    return 2
+                }
+                __workdir__=$2
+                shift 2
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                printf 'rune-guest run: unknown option: %s\n' "$1" >&2
+                return 2
+                ;;
+        esac
+    done
+
+    guest::require_id "${__id__}" || return
+    (($# > 0)) || {
+        printf 'rune-guest run: command is required\n' >&2
+        return 2
+    }
+    [[ "${__workdir__}" == /* ]] || {
+        printf 'rune-guest run: workdir must be absolute\n' >&2
+        return 2
+    }
+
+    local __directory__
+    local __log__
+    local __metadata__
+    __directory__=$(guest::directory "${__id__}") || return
+    __log__="${__directory__}/output.log"
+    __metadata__="${__directory__}/status"
+    mkdir -p -- "${__directory__}" "${__workdir__}" || return
+
+    printf 'running\n' >"${__metadata__}"
+    printf 'RUNE_JOB_BEGIN %s %s\n' "${__id__}" "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" | guest::_emit
+
+    local __status__
+    if [[ -w /dev/ttyS0 ]]; then
+        (
+            cd -- "${__workdir__}" || exit
+            "$@"
+        ) 2>&1 |
+            tee -a "${__log__}" |
+            sed "s/^/RUNE_JOB_LOG ${__id__} /" |
+            tee -a /dev/ttyS0 >/dev/null
+        __status__=${PIPESTATUS[0]}
+    else
+        (
+            cd -- "${__workdir__}" || exit
+            "$@"
+        ) 2>&1 | tee -a "${__log__}"
+        __status__=${PIPESTATUS[0]}
+    fi
+
+    printf '%s\n' "${__status__}" >"${__metadata__}"
+    printf 'RUNE_JOB_END %s %s %s\n' "${__id__}" "${__status__}" "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" | guest::_emit
+    return "${__status__}"
+}
+
+guest::_emit()
+{
+    if [[ -w /dev/ttyS0 ]]; then
+        tee -a /dev/ttyS0 >/dev/null
+    else
+        cat
+    fi
+}
+
+guest::logs()
+{
+    guest::require_id "${1:-}" || return
+    cat -- "$(guest::directory "$1")/output.log"
+}
+
+guest::status()
+{
+    guest::require_id "${1:-}" || return
+    cat -- "$(guest::directory "$1")/status"
+}
+
+guest::list()
+{
+    [[ -d "${RUNE_GUEST_LOG_DIR}" ]] || return 0
+    find "${RUNE_GUEST_LOG_DIR}" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort
+}
+
+case "${1:-}" in
+    run)
+        shift
+        guest::run "$@"
+        ;;
+    logs)
+        shift
+        (($# == 1)) || {
+            guest::usage >&2
+            exit 2
+        }
+        guest::logs "$1"
+        ;;
+    status)
+        shift
+        (($# == 1)) || {
+            guest::usage >&2
+            exit 2
+        }
+        guest::status "$1"
+        ;;
+    list)
+        shift
+        (($# == 0)) || {
+            guest::usage >&2
+            exit 2
+        }
+        guest::list
+        ;;
+    --help | -h | help)
+        guest::usage
+        ;;
+    *)
+        guest::usage >&2
+        exit 2
+        ;;
+esac

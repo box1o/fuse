@@ -1,0 +1,11 @@
+[Unit]
+Description=Rune queued job runner
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/rune-guest-queue
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
