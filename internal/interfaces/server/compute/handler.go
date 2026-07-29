@@ -10,12 +10,15 @@ import (
 	"fuse/pkg/errors"
 	"fuse/pkg/log"
 
+	serverWebSocket "fuse/internal/interfaces/server/websocket"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
 
 type Handler struct {
-	computeSvc *computeService.Service
+	computeSvc      *computeService.Service
+	webSocketServer *serverWebSocket.Server
 }
 
 type CreateNodeRequest struct {
@@ -37,21 +40,20 @@ type UpdateNodeCapabilitiesRequest struct {
 	Capabilities domainCompute.Capabilities `json:"capabilities"`
 }
 
-func NewHandler(service *computeService.Service) *Handler {
+func NewHandler(service *computeService.Service, webSocketServer *serverWebSocket.Server) *Handler {
 	return &Handler{
-		computeSvc: service,
+		computeSvc:      service,
+		webSocketServer: webSocketServer,
 	}
 }
 
-func (handler *Handler) RegisterRoutes(
-	router chi.Router,
-	authMiddleware *middleware.AuthMiddleware,
-) {
+func (handler *Handler) RegisterRoutes(router chi.Router, authMiddleware *middleware.AuthMiddleware) {
 	router.Route("/compute/node", func(router chi.Router) {
 		router.Use(authMiddleware.RequireAuth)
 
 		router.Post("/", handler.CreateNode)
 		router.Get("/", handler.ListOwnerNodes)
+		router.Get("/stream", handler.StreamWorkspaceNodes)
 		router.Get(
 			"/workspace/{workspaceID}",
 			handler.ListWorkspaceNodes,
