@@ -1,5 +1,5 @@
 import { Browser } from "./components/browser/browser";
-import { MachineListSkeleton } from "./machines";
+import { MachineList } from "./machines";
 
 const Main = () => {
     return (
@@ -11,7 +11,7 @@ const Main = () => {
 
                 </main>
 
-                <MachineListSkeleton/>
+                <MachineList />
             </div>
         </div>
     );
