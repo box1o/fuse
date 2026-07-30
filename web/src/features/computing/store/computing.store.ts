@@ -1,17 +1,24 @@
 import { create } from "zustand";
-import type { ComputeNode } from "../types/node.types";
+import type {ComputeNode, ComputeLogEntry }from "../types";
 
+const maximumLogEntries = 200;
 
 interface ComputeStoreProps {
     error: string | null;
     currentNode: ComputeNode | null;
     nodes: ComputeNode[];
+    logs: ComputeLogEntry[];
 
     setCurrentNode: (node: ComputeNode | null) => void;
     setNodes: (nodes: ComputeNode[]) => void;
     addNode: (node: ComputeNode) => void;
     updateNode: (node: ComputeNode) => void;
     deleteNode: (nodeId: string) => void;
+
+    addLog: (log: ComputeLogEntry) => void;
+    clearLogs: () => void;
+
+
     setError: (error: string | null) => void;
     reset: () => void;
 }
@@ -20,6 +27,7 @@ const useComputeStore = create<ComputeStoreProps>((set) => ({
     currentNode: null,
     error: null,
     nodes: [],
+    logs: [],
 
     setCurrentNode: (node) => set({ currentNode: node }),
 
@@ -47,11 +55,19 @@ const useComputeStore = create<ComputeStoreProps>((set) => ({
 
     setError: (error) => set({ error }),
 
+    addLog: (log) =>
+        set((state) => ({
+            logs: [...state.logs, log].slice(-maximumLogEntries),
+        })),
+
+    clearLogs: () => set({ logs: [] }),
+
     reset: () =>
         set({
             currentNode: null,
             error: null,
             nodes: [],
+            logs: [],
         }),
 }));
 
