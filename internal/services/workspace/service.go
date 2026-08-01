@@ -14,6 +14,11 @@ type Service struct {
 	workspaceRepo workspace.Repository
 }
 
+type WorkspaceMember struct {
+	userID      uuid.UUID `json: "user_id"`
+	workspaceID uuid.UUID `json: "workspace_id`
+}
+
 func NewService(wsRepo workspace.Repository) *Service {
 	return &Service{
 		workspaceRepo: wsRepo,
@@ -57,6 +62,26 @@ func (s *Service) DeleteWorkspace(ctx context.Context, wsID uuid.UUID) error {
 
 	if err := s.workspaceRepo.Delete(ctx, wsID); err != nil {
 		log.Error("failed to delete workspace %s: %v", wsID, err)
+		return err
+	}
+
+	return nil
+}
+
+func (s *Service) CreateWorkspaceMember(ctx context.Context, workspaceMember *WorkspaceMember) (*workspace.Member, error) {
+	wsMember := workspace.NewMember(workspaceMember.userID, workspaceMember.workspaceID, workspace.RoleMember)
+
+	if err := s.workspaceRepo.AddMember(ctx, wsMember); err != nil {
+		log.Error("failed to add member in db: %v", err)
+		return nil, err
+	}
+	return wsMember, nil
+
+}
+
+func (s *Service) DeleteWorkspaceMember(ctx context.Context, workspaceMember *WorkspaceMember) error {
+	if err := s.workspaceRepo.RemoveMember(ctx, workspaceMember.workspaceID, workspaceMember.userID); err != nil {
+		log.Error("failed to remove member: %s from workspace: %s, %v", workspaceMember.userID, workspaceMember.workspaceID, err)
 		return err
 	}
 

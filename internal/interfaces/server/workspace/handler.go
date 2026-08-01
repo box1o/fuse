@@ -31,8 +31,12 @@ func (h *Handler) RegisterRoutes(r chi.Router, authMiddleware *middleware.AuthMi
 		r.Post("/", h.CreateWorkspace)
 		r.Get("/", h.GetOwnerWorkspaces)
 		r.Delete("/{workspaceID}", h.DeleteWorkspace)
-
+		r.Route("/members", func(r chi.Router) {
+			r.Post("/", h.AddWorkspaceMember)
+			r.Delete("/{memberID}", h.DeleteWorkspaceMember)
+		})
 	})
+
 }
 
 type CreateWorkspaceRequest struct {
@@ -136,6 +140,54 @@ func (h *Handler) DeleteWorkspace(w http.ResponseWriter, r *http.Request) {
 	err = h.workspaceSvc.DeleteWorkspace(r.Context(), workspaceID)
 	if err != nil {
 		log.Error("failed to delete workspace: %v", err)
+		errors.WriteError(w, errors.ToHTTP(err))
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Handler) AddWorkspaceMember(w http.ResponseWriter, r *http.Request) {
+	var req workspace.WorkspaceMember
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Warn("failed to decode workspaceMember request: %v", err)
+		errors.WriteError(w, errors.ErrBadRequest.WithDetail("invalid request payload"))
+		return
+	}
+	defer r.Body.Close()
+
+	ws, err := h.workspaceSvc.CreateWorkspaceMember(r.Context(), &req)
+	if err != nil {
+		log.Error("failed to create workspaceMember: %v", err)
+		errors.WriteError(w, errors.ToHTTP(err))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(ws)
+}
+
+func (h *Handler) DeleteWorkspaceMember(w http.ResponseWriter, r *http.Request) {
+	workspaceIDStr := chi.URLParam(r, "workspaceID")
+	workspaceID, err := uuid.Parse(workspaceIDStr)
+	if err != nil || workspaceID == uuid.Nil {
+		log.Warn("invalid workspace ID: %v", err)
+		errors.WriteError(w, errors.ErrBadRequest.WithDetail("invalid workspace ID"))
+		return
+	}
+
+	memberIDStr := chi.URLParam(r, "memberID")
+	memberID, err := uuid.Parse(memberIDStr)
+	if err != nil || memberID == uuid.Nil {
+		log.Warn("invalid member ID: %v", err)
+		errors.WriteError(w, errors.ErrBadRequest.WithDetail("invalid member ID"))
+		return
+	}
+
+	err = h.workspaceSvc.DeleteWorkspaceMember(r.Context(), workspaceID, memberID)
+	if err != nil {
+		log.Error("failed to delete workspace member: %v", err)
 		errors.WriteError(w, errors.ToHTTP(err))
 		return
 	}
