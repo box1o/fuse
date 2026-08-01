@@ -1,6 +1,6 @@
 import z from "zod";
 import { useComputing } from "../hooks";
-import { Cpu, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button, Dialog, Input } from "@/shared/components";
 import React from "react";
 
@@ -44,7 +44,6 @@ const INITIAL_FORM_STATE: CreateNodeFormState = {
 
 export const CreateNodeModal = () => {
     const {
-        currentWorkspace,
         createNode,
         isCreatingNode,
         canCreateNode,
@@ -169,7 +168,7 @@ export const CreateNodeModal = () => {
                             <Input
                                 id="compute-node-cpu"
                                 type="number"
-                                min={1}
+                                min={4}
                                 step={1}
                                 value={form.cpuCores}
                                 onChange={(event) =>
@@ -194,8 +193,8 @@ export const CreateNodeModal = () => {
                             <Input
                                 id="compute-node-memory"
                                 type="number"
-                                min={128}
-                                step={128}
+                                min={2048}
+                                step={2048}
                                 value={form.memoryMB}
                                 onChange={(event) =>
                                     updateField(
@@ -233,7 +232,7 @@ export const CreateNodeModal = () => {
                             />
                         </div>
 
-                        <label className="flex cursor-pointer items-center gap-6 self-end rounded-md border px-3 py-2">
+                        <label className="flex cursor-pointer items-center gap-3 self-end rounded-md border px-3 py-2">
                             <input
                                 type="checkbox"
                                 checked={form.npuSupported}

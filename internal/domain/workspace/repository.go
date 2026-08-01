@@ -11,6 +11,7 @@ type Repository interface {
 	Create(ctx context.Context, workspace *Workspace) error
 	FindByName(ctx context.Context, name string) (*Workspace, error)
 	GetUserWorkspaces(ctx context.Context, ownerID uuid.UUID) ([]*Workspace, error)
+	GetWorkspaceByID(ctx context.Context, id uuid.UUID) (*Workspace, error)
 	Update(ctx context.Context, workspace *Workspace) error
 	Delete(ctx context.Context, id uuid.UUID) error
 

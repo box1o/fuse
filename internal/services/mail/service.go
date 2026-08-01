@@ -11,6 +11,7 @@ import (
 
 	"fuse/internal/domain/events"
 	"fuse/internal/domain/user"
+	"fuse/internal/domain/workspace"
 	eventSvc "fuse/internal/services/events"
 )
 
@@ -34,15 +35,15 @@ func NewService(cfg *config.Config, eventSvc *eventSvc.Service) *Service {
 
 func (s *Service) Setup() error {
 	log.Info("Setting up mail service and subscribing to events...")
-	s.eventSvc.Bus().Subscribe(
+	if err := s.eventSvc.Bus().Subscribe(
 		user.AccountCreatedEvent,
 		func(ctx context.Context, event events.Event) error {
 			payload, ok := event.Payload().(user.AccountCreated)
 			if !ok {
-				return fmt.Errorf("invalid payload for workspace created event")
+				return fmt.Errorf("invalid payload for account created event")
 			}
 
-			log.Info("Received workspace created event, sending email...")
+			log.Info("Received account created event, sending email...")
 			log.Info("Payload: %+v", payload)
 
 			return s.SendAccountCreatedMail(
@@ -50,7 +51,31 @@ func (s *Service) Setup() error {
 				payload.UserName,
 			)
 		},
-	)
+	); err != nil {
+		return fmt.Errorf("failed to subscribe to account created event: %w", err)
+	}
+
+	if err := s.eventSvc.Bus().Subscribe(
+		workspace.WorkspaceAddMailEvent,
+		func(ctx context.Context, event events.Event) error {
+			payload, ok := event.Payload().(workspace.WorkspaceAddMail)
+			if !ok {
+				return fmt.Errorf("invalid payload for workspace member added event")
+			}
+
+			log.Info("Received workspace member added event, sending email...")
+			log.Info("Payload: %+v", payload)
+
+			return s.SendWorkspaceMemberMailAdd(
+				[]string{payload.UserEmail},
+				payload.UserName,
+				payload.WorkspaceName,
+			)
+		},
+	); err != nil {
+		return fmt.Errorf("failed to subscribe to workspace member added event: %w", err)
+	}
+
 	return nil
 }
 
@@ -136,6 +161,48 @@ func (s *Service) SendWorkspaceCreatedMail(to []string, workspace string) error 
 	}
 
 	return sendEmail(s.from, s.password, to, "Workspace creat cu succes!", htmlContent)
+}
+
+func (s *Service) SendWorkspaceMemberMailAdd(to []string, username, workspace string) error {
+	h := hermes.Hermes{
+		Product: hermes.Product{
+			Name:      "Fuse",
+			Link:      "https://www.fuse.com/",
+			Copyright: "© 2025 Fuse. Toate drepturile rezervate.",
+		},
+		Theme: new(hermes.Default),
+	}
+
+	email := hermes.Email{
+		Body: hermes.Body{
+			Name: username,
+			Intros: []string{
+				fmt.Sprintf("Ai fost adăugat în workspace-ul **%s** ca membru!", workspace),
+			},
+			Actions: []hermes.Action{
+				{
+					Instructions: "Pentru a accesa workspace-ul, apasă butonul de mai jos:",
+					Button: hermes.Button{
+						Color: "#22C55E",
+						Text:  "Accesează Workspace-ul",
+						Link:  "https://www.fuse.com/",
+					},
+				},
+			},
+			Outros: []string{
+				"Acum poți colabora cu ceilalți membri și gestiona proiectele workspace-ului.",
+				"Pentru suport: support@fuse.app",
+			},
+			Signature: "Echipa Fuse",
+		},
+	}
+
+	htmlContent, err := h.GenerateHTML(email)
+	if err != nil {
+		return fmt.Errorf("failed to generate workspace member email: %w", err)
+	}
+
+	return sendEmail(s.from, s.password, to, fmt.Sprintf("Ai fost adăugat în workspace-ul %s", workspace), htmlContent)
 }
 
 func (s *Service) SendIssueMail(to []string, subject, message string) error {

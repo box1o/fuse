@@ -3,7 +3,9 @@ package workspace
 import (
 	"context"
 
+	"fuse/internal/domain/user"
 	"fuse/internal/domain/workspace"
+	"fuse/internal/infrastructure/events"
 	"fuse/pkg/errors"
 	"fuse/pkg/log"
 
@@ -12,16 +14,15 @@ import (
 
 type Service struct {
 	workspaceRepo workspace.Repository
+	userRepo      user.Repository
+	eventBus      events.EventBus
 }
 
-type WorkspaceMember struct {
-	userID      uuid.UUID `json: "user_id"`
-	workspaceID uuid.UUID `json: "workspace_id`
-}
-
-func NewService(wsRepo workspace.Repository) *Service {
+func NewService(wsRepo workspace.Repository, userRepo user.Repository, eventBus events.EventBus) *Service {
 	return &Service{
 		workspaceRepo: wsRepo,
+		userRepo:      userRepo,
+		eventBus:      eventBus,
 	}
 }
 
@@ -68,22 +69,63 @@ func (s *Service) DeleteWorkspace(ctx context.Context, wsID uuid.UUID) error {
 	return nil
 }
 
-func (s *Service) CreateWorkspaceMember(ctx context.Context, workspaceMember *WorkspaceMember) (*workspace.Member, error) {
-	wsMember := workspace.NewMember(workspaceMember.userID, workspaceMember.workspaceID, workspace.RoleMember)
+func (s *Service) CreateWorkspaceMember(ctx context.Context, workspaceID uuid.UUID, userMail string) (*workspace.Member, error) {
+
+	if workspaceID == uuid.Nil {
+		return nil, errors.ErrInternalServer.WithDetail("workspace ID cannot be empty")
+	}
+
+	if userMail == "" {
+		return nil, errors.ErrInternalServer.WithDetail("userMail cannot be empty")
+	}
+
+	user, err := s.userRepo.FindByEmail(ctx, userMail)
+	if err != nil {
+		log.Error("can't find user by email: %v", err)
+		return nil, err
+	}
+
+	wsMember := workspace.NewMember(user.ID, workspaceID, workspace.RoleMember)
 
 	if err := s.workspaceRepo.AddMember(ctx, wsMember); err != nil {
 		log.Error("failed to add member in db: %v", err)
 		return nil, err
 	}
-	return wsMember, nil
 
+	ws, err := s.workspaceRepo.GetWorkspaceByID(ctx, workspaceID)
+	if err != nil {
+		log.Error("can't find workspace by ID from db: %v", err)
+		return nil, err
+	}
+
+	if err := s.eventBus.Publish(ctx, workspace.NewWorkspaceAddMail(ws.Name, user.Name, user.Email)); err != nil {
+		log.Error("failed to publish workspace member added event: %v", err)
+	}
+	return wsMember, nil
 }
 
-func (s *Service) DeleteWorkspaceMember(ctx context.Context, workspaceMember *WorkspaceMember) error {
-	if err := s.workspaceRepo.RemoveMember(ctx, workspaceMember.workspaceID, workspaceMember.userID); err != nil {
-		log.Error("failed to remove member: %s from workspace: %s, %v", workspaceMember.userID, workspaceMember.workspaceID, err)
+func (s *Service) DeleteWorkspaceMember(ctx context.Context, workspaceID, userID uuid.UUID) error {
+	if workspaceID == uuid.Nil || userID == uuid.Nil {
+		return errors.ErrInternalServer.WithDetail("workspace ID and user ID cannot be empty")
+	}
+
+	if err := s.workspaceRepo.RemoveMember(ctx, workspaceID, userID); err != nil {
+		log.Error("failed to remove member: %s from workspace: %s, %v", userID, workspaceID, err)
 		return err
 	}
 
 	return nil
+}
+
+func (s *Service) ListWorkspaceMembers(ctx context.Context, workspaceID uuid.UUID) ([]*workspace.Member, error) {
+	if workspaceID == uuid.Nil {
+		return nil, errors.ErrInternalServer.WithDetail("workspace ID cannot be empty")
+	}
+
+	members, err := s.workspaceRepo.ListMembers(ctx, workspaceID)
+	if err != nil {
+		log.Error("failed to list members for workspace %s: %v", workspaceID, err)
+		return nil, err
+	}
+	return members, nil
 }

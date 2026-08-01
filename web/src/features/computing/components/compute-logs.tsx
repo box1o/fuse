@@ -25,7 +25,7 @@ const ComputeLogs = ({isConnected, isEnabled, onStart, onStop}: ComputeLogsProps
     const bottomRef = useRef<HTMLDivElement | null>(null);
 
     return (
-        <section className="flex h-full min-h-64 flex-col overflow-hidden rounded-xl border bg-card">
+        <section className="flex h-full min-h-128 flex-col overflow-hidden rounded-xl bg-card">
             <header className="flex items-center justify-between border-b px-4 py-3">
                 <div>
                     <div className="flex items-center gap-2">

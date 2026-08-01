@@ -7,8 +7,8 @@ import { MachineListSkeleton } from "./machine-list-skeleton";
 import { MachineActions } from "./machine-actions";
 
 const MachineCard = ({ node }: { node: ComputeNode }) => (
-    <article className="border-b px-1 py-3 last:border-b-0">
-        <div className="flex items-center justify-between gap-3">
+    <article className="px-1 py-3 border-b last:border-b-0">
+        <div className="flex items-center justify-between">
             <h3 className="min-w-0 truncate text-sm font-medium">
                 {node.name}
             </h3>
@@ -16,7 +16,7 @@ const MachineCard = ({ node }: { node: ComputeNode }) => (
             <MachineActions node={node} />
         </div>
 
-        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+        <div className="mt-2 flex flex-wrap gap-4 text-xs text-muted-foreground">
             <span className="flex items-center gap-1.5">
                 <Cpu className="size-3.5" />
                 {node.capabilities.cpu_cores} CPU
@@ -45,7 +45,7 @@ export const MachineList = () => {
 
     if (!currentWorkspace) {
         return (
-            <aside className="rounded-2xl p-5">
+            <aside>
                 <h2 className="font-semibold">Compute nodes</h2>
 
                 <p className="mt-2 text-sm text-muted-foreground">
@@ -56,7 +56,7 @@ export const MachineList = () => {
     }
 
     if (isLoadingNodes) {
-        return <MachineListSkeleton />;
+        return <MachineListSkeleton/>;
     }
 
     return (
@@ -76,7 +76,7 @@ export const MachineList = () => {
             )}
 
             {!nodesError && nodes.length === 0 && (
-                <div className="mt-6 rounded-xl p-6 text-center">
+                <div className="mt-6 p-6 text-center">
                     <p className="text-sm font-medium">
                         No compute nodes
                     </p>
@@ -88,12 +88,14 @@ export const MachineList = () => {
             )}
 
             {nodes.length > 0 && (
-                <div className="mt-4 space-y-3">
+                <div className="mt-4">
                     {nodes.map((node) => (
                         <MachineCard key={node.id} node={node} />
+                        
                     ))}
                 </div>
             )}
         </aside>
+        
     );
 };

@@ -51,6 +51,26 @@ func (r *WorkspaceRepository) FindByName(ctx context.Context, name string) (*wor
 	}
 	return dbWorkspace.ToDomain(), nil
 }
+func (r *WorkspaceRepository) GetWorkspaceByID(ctx context.Context, id uuid.UUID) (*workspace.Workspace, error) {
+	if id == uuid.Nil {
+		return nil, workspace.ErrWorkspaceIDEmpty
+	}
+
+	var dbWorkspace models.DBWorkspace
+	if err := r.db.
+		WithContext(ctx).
+		Preload("Members").
+		First(&dbWorkspace, "id = ?", id).
+		Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, workspace.ErrWorkspaceNotFound
+		}
+
+		return nil, workspace.ErrDatabaseOperation.WithErr(err)
+	}
+
+	return dbWorkspace.ToDomain(), nil
+}
 
 func (r *WorkspaceRepository) GetUserWorkspaces(ctx context.Context, ownerID uuid.UUID) ([]*workspace.Workspace, error) {
 	if ownerID == uuid.Nil {
