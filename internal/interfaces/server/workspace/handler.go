@@ -183,7 +183,7 @@ func (h *Handler) AddWorkspaceMember(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	ws, err := h.workspaceSvc.CreateWorkspaceMember(r.Context(), workspaceID, req.UserMail)
+	ws, err := h.workspaceSvc.AddWorkspaceMember(r.Context(), workspaceID, req.UserMail)
 	if err != nil {
 		log.Error("failed to create workspaceMember: %v", err)
 		errors.WriteError(w, errors.ToHTTP(err))
@@ -224,7 +224,8 @@ func (h *Handler) DeleteWorkspaceMember(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = h.workspaceSvc.DeleteWorkspaceMember(r.Context(), workspaceID, memberID)
+	var req AddWorkspaceMemberRequest
+	err = h.workspaceSvc.DeleteWorkspaceMember(r.Context(), req.UserMail, workspaceID, memberID)
 	if err != nil {
 		log.Error("failed to delete workspace member: %v", err)
 		errors.WriteError(w, errors.ToHTTP(err))

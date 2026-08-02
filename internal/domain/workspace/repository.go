@@ -18,8 +18,8 @@ type Repository interface {
 	// Membership operations
 	FindByMemberID(ctx context.Context, memberID uuid.UUID) ([]*Workspace, error)
 	AddMember(ctx context.Context, member *Member) error
-	RemoveMember(ctx context.Context, workspaceID, userID uuid.UUID) error
-	UpdateMemberRole(ctx context.Context, workspaceID, userID uuid.UUID, role Role) error
+	RemoveMember(ctx context.Context, workspaceID, memberID uuid.UUID) error
+	UpdateMemberRole(ctx context.Context, workspaceID, memberID uuid.UUID, role Role) error
 	ListMembers(ctx context.Context, workspaceID uuid.UUID) ([]*Member, error)
 
 	CreateWorkspaceWithOwner(ctx context.Context, workspace *Workspace, owner *Member) error

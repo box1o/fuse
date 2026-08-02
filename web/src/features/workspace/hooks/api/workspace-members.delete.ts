@@ -21,7 +21,7 @@ export const useDeleteWorkspaceMember = () => {
             }
         },
         onSuccess: (_) => {
-            queryClient.invalidateQueries({ queryKey: [WORKSPACE_QUERY_KEYS.MEMBER_DELETE] });
+            queryClient.invalidateQueries({ queryKey: [WORKSPACE_QUERY_KEYS.MEMBER_LIST] });
             toast.success("Workspace member deleted");
         },
         onError: (err) => {

@@ -28,13 +28,15 @@ func NewService(wsRepo workspace.Repository, userRepo user.Repository, eventBus 
 
 func (s *Service) CreateWorkspace(ctx context.Context, name string, ownerID uuid.UUID) (*workspace.Workspace, error) {
 	ws := workspace.NewWorkspace(name, ownerID)
-	wsMember := workspace.NewMember(ownerID, ws.ID, "default", "ion@gmail.com", workspace.RoleOwner)
 
-	// existing, _ := s.workspaceRepo.FindByName(ctx, name)
-	// if existing != nil {
-	// 	return nil, errors.ErrNameExists.WithDetail("workspace name already exists in the system")
-	// }
-	//
+	usr, err := s.userRepo.FindByID(ctx, ownerID)
+	if err != nil {
+		log.Error("can't find user by ownerId %s: %v", ownerID, err)
+		return nil, err
+	}
+
+	wsMember := workspace.NewMember(ownerID, ws.ID, usr.Email, ws.Name, workspace.RoleOwner)
+
 	if err := s.workspaceRepo.CreateWorkspaceWithOwner(ctx, ws, wsMember); err != nil {
 		log.Error("failed to create workspace in db: %v", err)
 		return nil, err
@@ -69,7 +71,7 @@ func (s *Service) DeleteWorkspace(ctx context.Context, wsID uuid.UUID) error {
 	return nil
 }
 
-func (s *Service) CreateWorkspaceMember(ctx context.Context, workspaceID uuid.UUID, userMail string) (*workspace.Member, error) {
+func (s *Service) AddWorkspaceMember(ctx context.Context, workspaceID uuid.UUID, userMail string) (*workspace.Member, error) {
 
 	if workspaceID == uuid.Nil {
 		return nil, errors.ErrInternalServer.WithDetail("workspace ID cannot be empty")
@@ -85,7 +87,7 @@ func (s *Service) CreateWorkspaceMember(ctx context.Context, workspaceID uuid.UU
 		return nil, err
 	}
 
-	wsMember := workspace.NewMember(user.ID, workspaceID, "default", userMail, workspace.RoleMember)
+	wsMember := workspace.NewMember(user.ID, workspaceID, user.Email, user.Name, workspace.RoleMember)
 
 	if err := s.workspaceRepo.AddMember(ctx, wsMember); err != nil {
 		log.Error("failed to add member in db: %v", err)
@@ -95,7 +97,7 @@ func (s *Service) CreateWorkspaceMember(ctx context.Context, workspaceID uuid.UU
 	ws, err := s.workspaceRepo.GetWorkspaceByID(ctx, workspaceID)
 	if err != nil {
 		log.Error("can't find workspace by ID from db: %v", err)
-		return nil, err
+		return nil, nil
 	}
 
 	if err := s.eventBus.Publish(ctx, workspace.NewWorkspaceAddMail(ws.Name, user.Name, user.Email)); err != nil {
@@ -104,16 +106,31 @@ func (s *Service) CreateWorkspaceMember(ctx context.Context, workspaceID uuid.UU
 	return wsMember, nil
 }
 
-func (s *Service) DeleteWorkspaceMember(ctx context.Context, workspaceID, userID uuid.UUID) error {
-	if workspaceID == uuid.Nil || userID == uuid.Nil {
-		return errors.ErrInternalServer.WithDetail("workspace ID and user ID cannot be empty")
+func (s *Service) DeleteWorkspaceMember(ctx context.Context, userMail string, workspaceID, memberID uuid.UUID) error {
+	if workspaceID == uuid.Nil || memberID == uuid.Nil {
+		return errors.ErrInternalServer.WithDetail("workspace ID and member ID cannot be empty")
 	}
 
-	if err := s.workspaceRepo.RemoveMember(ctx, workspaceID, userID); err != nil {
-		log.Error("failed to remove member: %s from workspace: %s, %v", userID, workspaceID, err)
+	if err := s.workspaceRepo.RemoveMember(ctx, workspaceID, memberID); err != nil {
+		log.Error("failed to remove member: %s from workspace: %s, %v", memberID, workspaceID, err)
 		return err
 	}
 
+	user, err := s.userRepo.FindByEmail(ctx, userMail)
+	if err != nil {
+		log.Error("can't find user by email: %v", err)
+		return nil
+	}
+
+	ws, err := s.workspaceRepo.GetWorkspaceByID(ctx, workspaceID)
+	if err != nil {
+		log.Error("can't find workspace by ID from db: %v", err)
+		return nil
+	}
+
+	if err := s.eventBus.Publish(ctx, workspace.NewWorkspaceAddMail(ws.Name, user.Name, user.Email)); err != nil {
+		log.Error("failed to publish workspace member added event: %v", err)
+	}
 	return nil
 }
 

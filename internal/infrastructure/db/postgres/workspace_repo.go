@@ -153,14 +153,14 @@ func (r *WorkspaceRepository) AddMember(ctx context.Context, member *workspace.M
 	return nil
 }
 
-func (r *WorkspaceRepository) RemoveMember(ctx context.Context, workspaceID, userID uuid.UUID) error {
-	if workspaceID == uuid.Nil || userID == uuid.Nil {
+func (r *WorkspaceRepository) RemoveMember(ctx context.Context, workspaceID, memberID uuid.UUID) error {
+	if workspaceID == uuid.Nil || memberID == uuid.Nil {
 		return workspace.ErrInvalidMember
 	}
 
-	result := r.db.WithContext(ctx).Delete(&models.DBMember{}, "workspace_id = ? AND user_id = ?", workspaceID.String(), userID.String())
+	result := r.db.WithContext(ctx).Delete(&models.DBMember{}, "workspace_id = ? AND id = ?", workspaceID.String(), memberID.String())
 	if result.Error != nil {
-		return workspace.ErrRemoveMemberFailed.WithErr(result.Error)
+		return workspace.ErrRemoveMemberFailed.WithErr(result.Error).WithDetail("failed in remove member (db)")
 	}
 	if result.RowsAffected == 0 {
 		return workspace.ErrMemberNotFound
