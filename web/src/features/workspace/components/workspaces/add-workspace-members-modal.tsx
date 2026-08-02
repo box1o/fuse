@@ -52,7 +52,10 @@ const AddWorkspaceMemberModal: React.FC<AddWorkspaceMemberModalProps> = ({ class
                     Add Member
                 </Button>
             </Dialog.Trigger>
-            <Dialog.Content className="sm:max-w-md w-[90vw] rounded-2xl p-6">
+            <Dialog.Content
+                overlayClassName="z-[60]"
+                className="z-[60] sm:max-w-md w-[90vw] rounded-2xl p-6"
+            >
                 <Dialog.Title className="text-lg font-semibold">
                     Add Member
                 </Dialog.Title>

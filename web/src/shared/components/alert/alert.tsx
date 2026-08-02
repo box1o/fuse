@@ -1,5 +1,7 @@
 import { useAlertStore } from '@/shared/store';
+import type { AlertConfig } from '@/shared/types';
 import { AlertCircle, CheckCircle, Info, XCircle } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import { Alert } from '../ui/alert';
 import { Button } from '../ui';
 
@@ -17,14 +19,14 @@ type AlertType = keyof typeof iconMap;
 const SystemAlert = () => {
     const { alerts, closeAlert } = useAlertStore();
 
-    const handleConfirm = async (alert: any) => {
+    const handleConfirm = async (alert: AlertConfig) => {
         if (alert.onConfirm) {
             await alert.onConfirm();
         }
         closeAlert(alert.id);
     };
 
-    const handleCancel = (alert: any) => {
+    const handleCancel = (alert: AlertConfig) => {
         if (alert.onCancel) {
             alert.onCancel();
         }
@@ -35,8 +37,8 @@ const SystemAlert = () => {
 
     if (alerts.length === 0) return null;
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+    return createPortal(
+        <div className="pointer-events-auto fixed inset-0 z-[100] flex items-center justify-center">
             <div className="space-y-4 max-w-lg">
                 {alerts.map((alert) => {
                     const alertType = (alert.type || 'info') as AlertType;
@@ -72,7 +74,8 @@ const SystemAlert = () => {
                     );
                 })}
             </div>
-        </div>
+        </div>,
+        document.body,
     );
 }
 
