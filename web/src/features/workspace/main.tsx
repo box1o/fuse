@@ -3,6 +3,8 @@ import { useSearchParams } from "react-router-dom";
 import Workspaces from "./components/workspaces/workspaces";
 import type { Workspace } from "./types";
 import { useWorkspaceStore } from "./store";
+import AddWorkspaceMemberModal from "./components/workspaces/add-workspace-members-modal";
+import { WorkspaceSettingsModal } from "./components/modal/workspace-settings-modal";
 
 
 const Main: React.FC = () => {
@@ -30,6 +32,8 @@ const Main: React.FC = () => {
 
     return (
         <div className="w-full h-full">
+            <AddWorkspaceMemberModal/>
+            <WorkspaceSettingsModal/>
             <Workspaces onRowClick={handleRowClick} />
         </div>
 

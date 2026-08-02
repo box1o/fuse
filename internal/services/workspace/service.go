@@ -28,7 +28,7 @@ func NewService(wsRepo workspace.Repository, userRepo user.Repository, eventBus 
 
 func (s *Service) CreateWorkspace(ctx context.Context, name string, ownerID uuid.UUID) (*workspace.Workspace, error) {
 	ws := workspace.NewWorkspace(name, ownerID)
-	wsMember := workspace.NewMember(ownerID, ws.ID, workspace.RoleOwner)
+	wsMember := workspace.NewMember(ownerID, ws.ID, "default", "ion@gmail.com", workspace.RoleOwner)
 
 	// existing, _ := s.workspaceRepo.FindByName(ctx, name)
 	// if existing != nil {
@@ -85,7 +85,7 @@ func (s *Service) CreateWorkspaceMember(ctx context.Context, workspaceID uuid.UU
 		return nil, err
 	}
 
-	wsMember := workspace.NewMember(user.ID, workspaceID, workspace.RoleMember)
+	wsMember := workspace.NewMember(user.ID, workspaceID, "default", userMail, workspace.RoleMember)
 
 	if err := s.workspaceRepo.AddMember(ctx, wsMember); err != nil {
 		log.Error("failed to add member in db: %v", err)

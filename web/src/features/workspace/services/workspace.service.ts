@@ -6,8 +6,8 @@ const BASE = "/workspaces";
 
 export const WORKSPACE_ROUTES = {
     BASE,
-    MEMBERS: `${BASE}/members`,
     SEARCH: `${BASE}/search`,
+    MEMBERS: (workspaceId: string) => `${BASE}/${workspaceId}/members`,
     BY_ID: (workspaceId: string) => `${BASE}/${workspaceId}`,
     BY_VS_MB_ID: (workspaceId: string, memberId: string) => `${BASE}/${workspaceId}/members/${memberId}`,
 };
@@ -56,7 +56,7 @@ class WorkspaceService {
     // members
     async addWorkspaceMember(request: WorkspaceMemberRequest  ): Promise<ServiceResult<WorkspaceMember>> {
         try {
-            const { data } = await api.post<WorkspaceMember>(WORKSPACE_ROUTES.MEMBERS, request);
+            const { data } = await api.post<WorkspaceMember>(WORKSPACE_ROUTES.MEMBERS(request.workspace_id), request);
             return { data, success: true };
         } catch (error: any) {
             return {
@@ -67,9 +67,9 @@ class WorkspaceService {
     }
 
 
-    async memberList(): Promise<ServiceResult<WorkspaceMember[]>> {
+    async memberList(workspace_id: string): Promise<ServiceResult<WorkspaceMember[]>> {
         try {
-            const { data } = await api.get<WorkspaceMember[]>(WORKSPACE_ROUTES.MEMBERS);
+            const { data } = await api.get<WorkspaceMember[]>(WORKSPACE_ROUTES.MEMBERS(workspace_id));
             return { data, success: true };
         } catch (error: any) {
             return {
