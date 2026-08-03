@@ -20,8 +20,8 @@ export const useDeleteWorkspaceMember = () => {
                 throw new Error(response.error || "Failed to delete workspace member");
             }
         },
-        onSuccess: (_) => {
-            queryClient.invalidateQueries({ queryKey: [WORKSPACE_QUERY_KEYS.MEMBER_LIST] });
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: [WORKSPACE_QUERY_KEYS.MEMBER_LIST, variables.workspaceId] });
             toast.success("Workspace member deleted");
         },
         onError: (err) => {

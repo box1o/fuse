@@ -12,9 +12,7 @@ interface AddWorkspaceMemberModalProps {
   className?: string;
 }
 
-const AddWorkspaceMemberModal = ({
-  className,
-}: AddWorkspaceMemberModalProps) => {
+const AddWorkspaceMemberModal = ({ className }: AddWorkspaceMemberModalProps) => {
   const { create, isLoading } = useAddWorkspaceMember();
 
   const currentWorkspace = useWorkspaceStore(

@@ -18,8 +18,8 @@ export const useAddWorkspaceMember = () => {
             }
             return response.data;
         },
-        onSuccess: (data) => {
-            queryClient.invalidateQueries({ queryKey: [WORKSPACE_QUERY_KEYS.MEMBER_LIST] });
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: [WORKSPACE_QUERY_KEYS.MEMBER_LIST, variables.workspace_id] });
             toast.success("Workspace member added");
         },
         onError: (err) => {

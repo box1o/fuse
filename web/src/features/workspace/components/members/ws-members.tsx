@@ -12,12 +12,14 @@ import {
 import type { WorkspaceMember } from "../../types/workspace.types";
 import { DataTable } from "../tables";
 import AddWorkspaceMemberModal from "../workspaces/add-workspace-members-modal";
+import { useWorkspaceStore } from "../../store";
 
 const WorkspaceMembers = () => {
     const alert = useAlert();
 
     const { members, isLoading } = useListWorkspaceMembers();
     const { delete: deleteWorkspaceMember } = useDeleteWorkspaceMember();
+    const currentWorkspace = useWorkspaceStore((state) => state.currentWorkspace,);
 
     const handleDeleteWorkspaceMember = React.useCallback(
         (workspaceId: string, memberId: string) => {
@@ -115,6 +117,12 @@ const WorkspaceMembers = () => {
 
     return (
         <div className="h-full w-full space-y-4">
+            <div className="flex items-center justify-center">
+                <span className="text-lg font-semibold">
+                    Workspace: {currentWorkspace?.name ?? "Unknown workspace"}
+                </span>
+            </div>
+
             <div className="flex items-center">
                 <span className="pl-2">
                     Workspace Members

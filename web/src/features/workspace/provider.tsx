@@ -4,11 +4,11 @@ import { useWorkspaceStore } from "./store";
 
 const WorkspaceSettingsModalProvider = ({ children }: PropsWithChildren) => {
 
-    const {isworkspaceSettingsOpen , setWorkspaceSettingsOpen}  = useWorkspaceStore();
+  const { isworkspaceSettingsOpen, setWorkspaceSettingsOpen } = useWorkspaceStore();
   return (
     <>
       {children}
-      <WorkspaceSettingsModal  isOpen={isworkspaceSettingsOpen} onOpenChange={setWorkspaceSettingsOpen}/>
+      <WorkspaceSettingsModal isOpen={isworkspaceSettingsOpen} onOpenChange={setWorkspaceSettingsOpen} />
     </>
   );
 };

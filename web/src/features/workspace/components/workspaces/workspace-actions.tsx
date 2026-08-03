@@ -16,8 +16,9 @@ const WorkspaceActions: React.FC<WorspaceActionsProps> = ({
     workspace
 }) => {
 
-
-    const {setWorkspaceSettingsOpen} = useWorkspaceStore();
+    const setCurrentWorkspace = useWorkspaceStore((state) => state.setCurrentWorkspace)
+    const { setWorkspaceSettingsOpen } = useWorkspaceStore();
+    
     return (
         <DropdownMenu >
             <DropdownMenu.Trigger asChild>
@@ -38,8 +39,10 @@ const WorkspaceActions: React.FC<WorspaceActionsProps> = ({
                     Edit
                 </DropdownMenu.Item>
                 <DropdownMenu.Item
-                onClick={()=>{
-                    setWorkspaceSettingsOpen(true) }}
+                    onClick={() => {
+                        setCurrentWorkspace(workspace);
+                        setWorkspaceSettingsOpen(true)
+                    }}
                 >
                     Members
                 </DropdownMenu.Item>
