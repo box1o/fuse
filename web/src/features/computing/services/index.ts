@@ -1,1 +1,1 @@
-export { default as computingService } from "./computing.service";
+export * from "./computing.service";

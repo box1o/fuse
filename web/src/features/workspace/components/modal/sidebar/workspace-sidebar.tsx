@@ -23,7 +23,7 @@ const WorkspaceSidebar = ({
 }: WorkspaceSidebarProps) => {
     return (
         <div className="flex h-full">
-            <Sidebar width="max-content">
+            <Sidebar width="max-content" className="min-w-[160px]">
                 <Sidebar.Content>
                     {items.map((item) => {
                         const isSelected = selectedItemId === item.id;

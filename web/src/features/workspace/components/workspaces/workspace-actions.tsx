@@ -3,6 +3,7 @@ import { DropdownMenu, Button } from "@/shared/components";
 import { EllipsisVertical, ListMinus } from "lucide-react";
 import type React from "react";
 import type { Workspace } from "../../types";
+import { useWorkspaceStore } from "../../store";
 
 
 interface WorspaceActionsProps {
@@ -14,6 +15,9 @@ const WorkspaceActions: React.FC<WorspaceActionsProps> = ({
     handleDeleteWorkspace,
     workspace
 }) => {
+
+
+    const {setWorkspaceSettingsOpen} = useWorkspaceStore();
     return (
         <DropdownMenu >
             <DropdownMenu.Trigger asChild>
@@ -33,7 +37,10 @@ const WorkspaceActions: React.FC<WorspaceActionsProps> = ({
                 <DropdownMenu.Item>
                     Edit
                 </DropdownMenu.Item>
-                <DropdownMenu.Item>
+                <DropdownMenu.Item
+                onClick={()=>{
+                    setWorkspaceSettingsOpen(true) }}
+                >
                     Members
                 </DropdownMenu.Item>
                 <DropdownMenu.Item
