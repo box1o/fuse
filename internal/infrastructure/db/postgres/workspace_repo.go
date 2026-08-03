@@ -140,6 +140,28 @@ func (r *WorkspaceRepository) FindByMemberID(ctx context.Context, memberID uuid.
 
 	return r.convertToWorkspaces(dbWorkspaces), nil
 }
+func (r *WorkspaceRepository) FindMember(ctx context.Context, workspaceID, userID uuid.UUID) (*workspace.Member, error) {
+	if workspaceID == uuid.Nil {
+		return nil, workspace.ErrWorkspaceIDEmpty
+	}
+
+	if userID == uuid.Nil {
+		return nil, workspace.ErrMemberIDEmpty
+	}
+
+	var dbMember models.DBMember
+	err := r.db.WithContext(ctx).Where("workspace_id = ? AND user_id = ?", workspaceID, userID).First(&dbMember).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, workspace.ErrMemberNotFound
+		}
+
+		return nil, workspace.ErrDatabaseOperation.WithErr(err)
+	}
+
+	return dbMember.ToDomain(), nil
+}
 
 func (r *WorkspaceRepository) AddMember(ctx context.Context, member *workspace.Member) error {
 	if member == nil {

@@ -3,6 +3,7 @@ package workspace
 import (
 	"context"
 
+	stderrors "errors"
 	"fuse/internal/domain/user"
 	"fuse/internal/domain/workspace"
 	"fuse/internal/infrastructure/events"
@@ -35,7 +36,7 @@ func (s *Service) CreateWorkspace(ctx context.Context, name string, ownerID uuid
 		return nil, err
 	}
 
-	wsMember := workspace.NewMember(ownerID, ws.ID, usr.Email, ws.Name, workspace.RoleOwner)
+	wsMember := workspace.NewMember(ownerID, ws.ID, usr.Email, usr.Name, workspace.RoleOwner)
 
 	if err := s.workspaceRepo.CreateWorkspaceWithOwner(ctx, ws, wsMember); err != nil {
 		log.Error("failed to create workspace in db: %v", err)
@@ -72,7 +73,6 @@ func (s *Service) DeleteWorkspace(ctx context.Context, wsID uuid.UUID) error {
 }
 
 func (s *Service) AddWorkspaceMember(ctx context.Context, workspaceID uuid.UUID, userMail string) (*workspace.Member, error) {
-
 	if workspaceID == uuid.Nil {
 		return nil, errors.ErrInternalServer.WithDetail("workspace ID cannot be empty")
 	}
@@ -87,8 +87,17 @@ func (s *Service) AddWorkspaceMember(ctx context.Context, workspaceID uuid.UUID,
 		return nil, err
 	}
 
-	wsMember := workspace.NewMember(user.ID, workspaceID, user.Email, user.Name, workspace.RoleMember)
+	_, err = s.workspaceRepo.FindMember(ctx, workspaceID, user.ID)
 
+	if err == nil {
+		return nil, workspace.ErrMemberAlreadyExists
+	}
+
+	if !stderrors.Is(err, workspace.ErrMemberNotFound) {
+		return nil, err
+	}
+
+	wsMember := workspace.NewMember(user.ID, workspaceID, user.Email, user.Name, workspace.RoleMember)
 	if err := s.workspaceRepo.AddMember(ctx, wsMember); err != nil {
 		log.Error("failed to add member in db: %v", err)
 		return nil, err

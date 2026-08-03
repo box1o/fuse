@@ -17,6 +17,7 @@ type Repository interface {
 
 	// Membership operations
 	FindByMemberID(ctx context.Context, memberID uuid.UUID) ([]*Workspace, error)
+	FindMember(ctx context.Context, workspaceID, userID uuid.UUID) (*Member, error)
 	AddMember(ctx context.Context, member *Member) error
 	RemoveMember(ctx context.Context, workspaceID, memberID uuid.UUID) error
 	UpdateMemberRole(ctx context.Context, workspaceID, memberID uuid.UUID, role Role) error

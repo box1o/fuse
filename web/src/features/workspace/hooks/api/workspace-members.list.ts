@@ -1,9 +1,7 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 import type {  WorkspaceMember } from "../../types/workspace.types";
 import { WORKSPACE_QUERY_KEYS } from "../../constants/workspace.constants";
 import { workspaceService } from "../../services";
-import React from "react";
 import { useWorkspaceStore } from "../../store";
 
 export const useListWorkspaceMembers = () => {
@@ -28,14 +26,7 @@ export const useListWorkspaceMembers = () => {
         enabled: Boolean(workspaceId),
         retry: false,
     });
-
-    // React.useEffect(() => {
-    //     if (listWsMembersQuery.isError && listWsMembersQuery.error) {
-    //         toast.error(listWsMembersQuery.error.message || "Failed to fetch workspace member");
-    //         queryClient.removeQueries({ queryKey: [WORKSPACE_QUERY_KEYS.MEMBER_LIST] });
-    //     }
-    // }, [listWsMembersQuery.isError, listWsMembersQuery.error, queryClient]);
-
+    
     return {
         isLoading: listWsMembersQuery.isLoading,
         isFetching: listWsMembersQuery.isFetching,
