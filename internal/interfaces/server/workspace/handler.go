@@ -46,6 +46,7 @@ type CreateWorkspaceRequest struct {
 
 type AddWorkspaceMemberRequest struct {
 	UserMail string `json:"user_mail"`
+	Role     string `json:"role"`
 }
 
 // @Summary		Create a workspace
@@ -183,7 +184,7 @@ func (h *Handler) AddWorkspaceMember(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	ws, err := h.workspaceSvc.AddWorkspaceMember(r.Context(), workspaceID, req.UserMail)
+	ws, err := h.workspaceSvc.AddWorkspaceMember(r.Context(), workspaceID, req.UserMail, req.Role)
 	if err != nil {
 		log.Error("failed to create workspaceMember: %v", err)
 		errors.WriteError(w, errors.ToHTTP(err))

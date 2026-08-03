@@ -13,7 +13,7 @@ interface AddWorkspaceMemberModalProps {
 }
 
 const AddWorkspaceMemberModal = ({ className }: AddWorkspaceMemberModalProps) => {
-  const { create, isLoading } = useAddWorkspaceMember();
+  const { addMember, isLoading } = useAddWorkspaceMember();
 
   const currentWorkspace = useWorkspaceStore(
     (state) => state.currentWorkspace,
@@ -41,10 +41,10 @@ const AddWorkspaceMemberModal = ({ className }: AddWorkspaceMemberModalProps) =>
 
     setValidationError("");
 
-    create({
+    addMember({
       user_mail: result.data,
       workspace_id: currentWorkspace.id,
-      // role: memberRole,
+      role: memberRole,
     });
   };
 

@@ -29,6 +29,7 @@ interface WorkspaceMember {
 interface WorkspaceMemberRequest {
     workspace_id: string;
     user_mail: string;
+    role: string;
 }
 
 export type { CreateWorkspaceRequest, Workspace, WorkspaceMemberRequest, WorkspaceMember }

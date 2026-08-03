@@ -21,4 +21,5 @@ var (
 	ErrRemoveMemberFailed     = errors.New("REMOVE_MEMBER_FAILED", "failed to remove member from workspace")
 	ErrUpdateMemberRoleFailed = errors.New("UPDATE_MEMBER_ROLE_FAILED", "failed to update member role")
 	ErrMemberIDEmpty          = errors.New("MEMBER_ID_EMPTY", "member ID cannot be empty")
+	ErrInvalidMemberRole      = errors.New("INVALID_MEMBER_ROLE", "cannot parse member role")
 )

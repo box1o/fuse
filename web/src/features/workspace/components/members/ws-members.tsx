@@ -125,7 +125,7 @@ const WorkspaceMembers = () => {
 
             <div className="flex items-center">
                 <span className="pl-2">
-                    Workspace Members
+                    Members
                 </span>
 
                 <AddWorkspaceMemberModal className="ml-auto mr-2 bg-brand/20" />

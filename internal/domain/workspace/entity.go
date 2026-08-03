@@ -57,3 +57,12 @@ func NewMember(userID, workspaceID uuid.UUID, mail, name string, role Role) *Mem
 		CreatedAt:   now,
 	}
 }
+
+func ParseRole(value string) (Role, error) {
+	switch Role(value) {
+	case RoleOwner, RoleAdmin, RoleMember:
+		return Role(value), nil
+	default:
+		return "", ErrInvalidMemberRole
+	}
+}

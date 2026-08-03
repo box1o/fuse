@@ -72,7 +72,7 @@ func (s *Service) DeleteWorkspace(ctx context.Context, wsID uuid.UUID) error {
 	return nil
 }
 
-func (s *Service) AddWorkspaceMember(ctx context.Context, workspaceID uuid.UUID, userMail string) (*workspace.Member, error) {
+func (s *Service) AddWorkspaceMember(ctx context.Context, workspaceID uuid.UUID, userMail, userRole string) (*workspace.Member, error) {
 	if workspaceID == uuid.Nil {
 		return nil, errors.ErrInternalServer.WithDetail("workspace ID cannot be empty")
 	}
@@ -97,7 +97,13 @@ func (s *Service) AddWorkspaceMember(ctx context.Context, workspaceID uuid.UUID,
 		return nil, err
 	}
 
-	wsMember := workspace.NewMember(user.ID, workspaceID, user.Email, user.Name, workspace.RoleMember)
+	role, err := workspace.ParseRole(userRole)
+	if err != nil {
+		log.Error("failed to parse user role")
+		return nil, err
+	}
+
+	wsMember := workspace.NewMember(user.ID, workspaceID, user.Email, user.Name, role)
 	if err := s.workspaceRepo.AddMember(ctx, wsMember); err != nil {
 		log.Error("failed to add member in db: %v", err)
 		return nil, err

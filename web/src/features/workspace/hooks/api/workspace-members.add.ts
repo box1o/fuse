@@ -34,6 +34,6 @@ export const useAddWorkspaceMember = () => {
         isSuccess: mutation.isSuccess,
         isError: mutation.isError,
         error: mutation.error,
-        create: mutation.mutate, 
+        addMember: mutation.mutate, 
     }
 };
