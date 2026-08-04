@@ -76,6 +76,27 @@ func (s *Service) Setup() error {
 		return fmt.Errorf("failed to subscribe to workspace member added event: %w", err)
 	}
 
+	if err := s.eventSvc.Bus().Subscribe(
+		workspace.WorkspaceRemoveMailEvent,
+		func(ctx context.Context, event events.Event) error {
+			payload, ok := event.Payload().(workspace.WorkspaceRemoveMail)
+			if !ok {
+				return fmt.Errorf("invalid payload for workspace member removed event")
+			}
+
+			log.Info("Received workspace member removed event, sending email...")
+			log.Info("Payload: %+v", payload)
+
+			return s.SendWorkspaceMemberMailRemove(
+				[]string{payload.UserEmail},
+				payload.UserName,
+				payload.WorkspaceName,
+			)
+		},
+	); err != nil {
+		return fmt.Errorf("failed to subscribe to workspace member removed event: %w", err)
+	}
+
 	return nil
 }
 
@@ -203,6 +224,48 @@ func (s *Service) SendWorkspaceMemberMailAdd(to []string, username, workspace st
 	}
 
 	return sendEmail(s.from, s.password, to, fmt.Sprintf("Ai fost adăugat în workspace-ul %s", workspace), htmlContent)
+}
+
+func (s *Service) SendWorkspaceMemberMailRemove(to []string, username, workspace string) error {
+	h := hermes.Hermes{
+		Product: hermes.Product{
+			Name:      "Fuse",
+			Link:      "https://www.fuse.com/",
+			Copyright: "© 2025 Fuse. Toate drepturile rezervate.",
+		},
+		Theme: new(hermes.Default),
+	}
+
+	email := hermes.Email{
+		Body: hermes.Body{
+			Name: username,
+			Intros: []string{
+				fmt.Sprintf("Ai fost sters din workspace-ul **%s**!", workspace),
+			},
+			Actions: []hermes.Action{
+				{
+					Instructions: "Pentru a accesa workspace-ul, apasă butonul de mai jos:",
+					Button: hermes.Button{
+						Color: "#22C55E",
+						Text:  "Accesează Workspace-ul",
+						Link:  "https://www.fuse.com/",
+					},
+				},
+			},
+			Outros: []string{
+				"Colaborația cu ceilalți membri a fost inchisa",
+				"Pentru suport: support@fuse.app",
+			},
+			Signature: "Echipa Fuse",
+		},
+	}
+
+	htmlContent, err := h.GenerateHTML(email)
+	if err != nil {
+		return fmt.Errorf("failed to generate workspace remove member email: %w", err)
+	}
+
+	return sendEmail(s.from, s.password, to, fmt.Sprintf("Ai fost sters din workspace-ul %s", workspace), htmlContent)
 }
 
 func (s *Service) SendIssueMail(to []string, subject, message string) error {

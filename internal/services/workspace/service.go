@@ -126,15 +126,10 @@ func (s *Service) DeleteWorkspaceMember(ctx context.Context, userMail string, wo
 		return errors.ErrInternalServer.WithDetail("workspace ID and member ID cannot be empty")
 	}
 
-	if err := s.workspaceRepo.RemoveMember(ctx, workspaceID, memberID); err != nil {
-		log.Error("failed to remove member: %s from workspace: %s, %v", memberID, workspaceID, err)
-		return err
-	}
-
-	user, err := s.userRepo.FindByEmail(ctx, userMail)
+	member, err := s.workspaceRepo.FindMember(ctx, workspaceID, memberID)
 	if err != nil {
-		log.Error("can't find user by email: %v", err)
-		return nil
+		log.Error("failed to find member %s in workspace %s: %v", memberID, workspaceID, err)
+		return err
 	}
 
 	ws, err := s.workspaceRepo.GetWorkspaceByID(ctx, workspaceID)
@@ -143,8 +138,13 @@ func (s *Service) DeleteWorkspaceMember(ctx context.Context, userMail string, wo
 		return nil
 	}
 
-	if err := s.eventBus.Publish(ctx, workspace.NewWorkspaceAddMail(ws.Name, user.Name, user.Email)); err != nil {
-		log.Error("failed to publish workspace member added event: %v", err)
+	if err := s.workspaceRepo.RemoveMember(ctx, workspaceID, memberID); err != nil {
+		log.Error("failed to remove member: %s from workspace: %s, %v", memberID, workspaceID, err)
+		return err
+	}
+
+	if err := s.eventBus.Publish(ctx, workspace.NewWorkspaceRemovedMail(ws.Name, member.Name, member.Mail)); err != nil {
+		log.Error("failed to publish workspace remove member event: %v", err)
 	}
 	return nil
 }

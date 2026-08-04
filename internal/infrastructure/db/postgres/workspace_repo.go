@@ -150,7 +150,7 @@ func (r *WorkspaceRepository) FindMember(ctx context.Context, workspaceID, userI
 	}
 
 	var dbMember models.DBMember
-	err := r.db.WithContext(ctx).Where("workspace_id = ? AND user_id = ?", workspaceID, userID).First(&dbMember).Error
+	err := r.db.WithContext(ctx).Where("workspace_id = ? AND id = ?", workspaceID, userID).First(&dbMember).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
