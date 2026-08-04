@@ -12,11 +12,13 @@ import (
 )
 
 func (a *Application) setupServices() error {
-	a.workspaceSvc = svcWorkspace.NewService(a.workspaceRepo)
+	a.workspaceSvc = svcWorkspace.NewService(a.workspaceRepo, a.userRepo, a.eventManager.Bus())
 	a.authSvc = auth.NewService(a.userRepo, a.sessMgr, a.workspaceSvc, a.eventManager.Bus())
 	a.deviceAuthSvc = deviceAuthService.NewService(a.cfg, a.redis, a.cliCredentialRepo, a.userRepo)
 	a.mailSvc = mail.NewService(a.cfg, a.eventManager)
-	a.mailSvc.Setup()
+	if err := a.mailSvc.Setup(); err != nil {
+		return err
+	}
 	a.notificationSvc = notification.NewService(a.cfg)
 	a.creditSvc = creditService.NewService(a.creditUoW, a.creditAccountRepo, a.creditPackRepo)
 	a.paymentSvc = paymentService.NewService(a.paymentRepo, a.creditSvc, a.creditSvc, a.paymentPriceCatalog, a.stripeClient)

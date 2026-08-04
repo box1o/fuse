@@ -15,5 +15,21 @@ interface Workspace {
     created_at: string;
 }
 
+interface WorkspaceMember {
+    id: string;
+    user_id: string;
+    workspace_id: string;
+    name: string;
+    mail: string;
+    role: string;
+    updated_at: string;
+    created_at: string;
+}
 
-export type { CreateWorkspaceRequest, Workspace }
+interface WorkspaceMemberRequest {
+    workspace_id: string;
+    user_mail: string;
+    role: string;
+}
+
+export type { CreateWorkspaceRequest, Workspace, WorkspaceMemberRequest, WorkspaceMember }

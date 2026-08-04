@@ -9,7 +9,9 @@ import (
 	mailH "fuse/internal/interfaces/server/mail"
 	authMW "fuse/internal/interfaces/server/middleware"
 	paymentH "fuse/internal/interfaces/server/payment"
+	serverWebSocket "fuse/internal/interfaces/server/websocket"
 	wsH "fuse/internal/interfaces/server/workspace"
+	"time"
 
 	"fuse/internal/interfaces/server"
 
@@ -17,6 +19,16 @@ import (
 )
 
 func (a *Application) setupHandlers() error {
+	webSocketServer := serverWebSocket.NewServer(
+		serverWebSocket.ServerConfig{
+			OriginPatterns: []string{
+				"localhost:5173",
+				"127.0.0.1:5173",
+			},
+			WriteTimeout: 10 * time.Second,
+		},
+	)
+
 	a.healthHandler = healthH.NewHandler(a.cfg)
 	a.authMW = authMW.NewAuthMiddleware(a.authSvc, a.cfg)
 	a.authHandler = authH.NewHandler(a.authSvc, a.cfg)
@@ -25,7 +37,7 @@ func (a *Application) setupHandlers() error {
 	a.mailHandler = mailH.NewHandler(a.cfg, a.mailSvc)
 	a.paymentHandler = paymentH.NewHandler(a.paymentSvc, a.paymentSvc, a.stripeWebhookParser)
 	a.creditHandler = creditH.NewHandler(a.creditSvc, a.creditSvc)
-	a.computeHandler = computeH.NewHandler(a.computeSvc)
+	a.computeHandler = computeH.NewHandler(a.computeSvc, webSocketServer)
 	return nil
 }
 

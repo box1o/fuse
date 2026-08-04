@@ -1,11 +1,15 @@
 import type { ServiceResult } from "@/shared/types";
 import { api } from "@/shared/services";
-import type { CreateWorkspaceRequest, Workspace } from "../types/workspace.types";
+import type { CreateWorkspaceRequest, Workspace, WorkspaceMember, WorkspaceMemberRequest } from "../types/workspace.types";
+
+const BASE = "/workspaces";
 
 export const WORKSPACE_ROUTES = {
-    BASE: "/workspaces",
-    SEARCH: "/workspaces/search",
-    BY_ID: (workspaceId: string) => `/workspaces/${workspaceId}`,
+    BASE,
+    SEARCH: `${BASE}/search`,
+    MEMBERS: (workspaceId: string) => `${BASE}/${workspaceId}/members`,
+    BY_ID: (workspaceId: string) => `${BASE}/${workspaceId}`,
+    BY_VS_MB_ID: (workspaceId: string, memberId: string) => `${BASE}/${workspaceId}/members/${memberId}`,
 };
 class WorkspaceService {
 
@@ -49,8 +53,46 @@ class WorkspaceService {
     }
 
 
+    // members
+    async addWorkspaceMember(request: WorkspaceMemberRequest  ): Promise<ServiceResult<WorkspaceMember>> {
+        try {
+            const { data } = await api.post<WorkspaceMember>(WORKSPACE_ROUTES.MEMBERS(request.workspace_id), request);
+            return { data, success: true };
+        } catch (error: any) {
+            return {
+                error: this.handleError(error, "add workspace member"),
+                success: false,
+            };
+        }
+    }
 
 
+    async memberList(workspace_id: string): Promise<ServiceResult<WorkspaceMember[]>> {
+        try {
+            const { data } = await api.get<WorkspaceMember[]>(WORKSPACE_ROUTES.MEMBERS(workspace_id));
+            return { data, success: true };
+        } catch (error: any) {
+            return {
+                error: this.handleError(error, "list members"),
+                success: false,
+            };
+        }
+    }
+
+
+    async deleteMember(workspaceId: string, memberId: string): Promise<ServiceResult<void>> {
+        try {
+            await api.delete(WORKSPACE_ROUTES.BY_VS_MB_ID(workspaceId, memberId));
+            return { data: undefined, success: true };
+        } catch (error: any) {
+            return {
+                error: this.handleError(error, "delete members"),
+                success: false,
+            };
+        }
+    }
+
+    
     private handleError(error: any, operation: string): string {
         return error?.response?.data?.message ||
             error?.message ||

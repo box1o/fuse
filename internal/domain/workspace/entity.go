@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-
 type Workspace struct {
 	ID        uuid.UUID `json:"id"`
 	Name      string    `json:"name"`
@@ -38,19 +37,32 @@ type Member struct {
 	ID          uuid.UUID `json:"id"`
 	UserID      uuid.UUID `json:"user_id"`
 	WorkspaceID uuid.UUID `json:"workspace_id"`
+	Name        string    `json:"name"`
+	Mail        string    `json:"mail"`
 	Role        Role      `json:"role"`
 	UpdatedAt   time.Time `json:"updated_at"`
 	CreatedAt   time.Time `json:"created_at"`
 }
 
-func NewMember(userID, workspaceID uuid.UUID, role Role) *Member {
+func NewMember(userID, workspaceID uuid.UUID, mail, name string, role Role) *Member {
 	now := time.Now().UTC()
 	return &Member{
 		ID:          uuid.New(),
 		UserID:      userID,
 		WorkspaceID: workspaceID,
+		Name:        name,
+		Mail:        mail,
 		Role:        role,
 		UpdatedAt:   now,
 		CreatedAt:   now,
+	}
+}
+
+func ParseRole(value string) (Role, error) {
+	switch Role(value) {
+	case RoleOwner, RoleAdmin, RoleMember:
+		return Role(value), nil
+	default:
+		return "", ErrInvalidMemberRole
 	}
 }

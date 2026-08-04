@@ -31,12 +31,22 @@ func (h *Handler) RegisterRoutes(r chi.Router, authMiddleware *middleware.AuthMi
 		r.Post("/", h.CreateWorkspace)
 		r.Get("/", h.GetOwnerWorkspaces)
 		r.Delete("/{workspaceID}", h.DeleteWorkspace)
-
+		r.Route("/{workspaceID}/members", func(r chi.Router) {
+			r.Post("/", h.AddWorkspaceMember)
+			r.Get("/", h.GetWorkspaceMembers)
+			r.Delete("/{memberID}", h.DeleteWorkspaceMember)
+		})
 	})
+
 }
 
 type CreateWorkspaceRequest struct {
 	Name string `json:"name"`
+}
+
+type AddWorkspaceMemberRequest struct {
+	UserMail string `json:"user_mail"`
+	Role     string `json:"role"`
 }
 
 // @Summary		Create a workspace
@@ -141,4 +151,120 @@ func (h *Handler) DeleteWorkspace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// @Summary		Add a workspace member
+// @Description	Adds a user to the specified workspace using the user's email address.
+// @Tags			workspaces
+// @Accept			json
+// @Produce		json
+// @Param			workspaceID	path		string						true	"Workspace ID"
+// @Param			request		body		AddWorkspaceMemberRequest	true	"Member details"
+// @Success		201				{object}	map[string]interface{}
+// @Failure		400				{object}	errors.HTTPError
+// @Failure		401				{object}	errors.HTTPError
+// @Failure		404				{object}	errors.HTTPError
+// @Failure		409				{object}	errors.HTTPError
+// @Failure		500				{object}	errors.HTTPError
+// @Router			/workspaces/{workspaceID}/members [post]
+func (h *Handler) AddWorkspaceMember(w http.ResponseWriter, r *http.Request) {
+	workspaceIDStr := chi.URLParam(r, "workspaceID")
+	workspaceID, err := uuid.Parse(workspaceIDStr)
+	if err != nil || workspaceID == uuid.Nil {
+		log.Warn("invalid workspace ID: %v", err)
+		errors.WriteError(w, errors.ErrBadRequest.WithDetail("invalid workspace ID"))
+		return
+	}
+
+	var req AddWorkspaceMemberRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Warn("failed to decode workspaceMember request: %v", err)
+		errors.WriteError(w, errors.ErrBadRequest.WithDetail("invalid request payload"))
+		return
+	}
+	defer r.Body.Close()
+
+	ws, err := h.workspaceSvc.AddWorkspaceMember(r.Context(), workspaceID, req.UserMail, req.Role)
+	if err != nil {
+		log.Error("failed to create workspaceMember: %v", err)
+		errors.WriteError(w, errors.ToHTTP(err))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	_ = json.NewEncoder(w).Encode(ws)
+}
+
+// @Summary		Delete a workspace member
+// @Description	Removes the member identified by memberID from the specified workspace.
+// @Tags			workspaces
+// @Param			workspaceID	path	string	true	"Workspace ID"
+// @Param			memberID		path	string	true	"Member ID"
+// @Success		204
+// @Failure		400	{object}	errors.HTTPError
+// @Failure		401	{object}	errors.HTTPError
+// @Failure		404	{object}	errors.HTTPError
+// @Failure		500	{object}	errors.HTTPError
+// @Router			/workspaces/{workspaceID}/members/{memberID} [delete]
+func (h *Handler) DeleteWorkspaceMember(w http.ResponseWriter, r *http.Request) {
+
+	workspaceIDStr := chi.URLParam(r, "workspaceID")
+	workspaceID, err := uuid.Parse(workspaceIDStr)
+	if err != nil || workspaceID == uuid.Nil {
+		log.Warn("invalid workspace ID: %v", err)
+		errors.WriteError(w, errors.ErrBadRequest.WithDetail("invalid workspace ID"))
+		return
+	}
+
+	memberIDStr := chi.URLParam(r, "memberID")
+	memberID, err := uuid.Parse(memberIDStr)
+	if err != nil || memberID == uuid.Nil {
+		log.Warn("invalid member ID: %v", err)
+		errors.WriteError(w, errors.ErrBadRequest.WithDetail("invalid member ID"))
+		return
+	}
+
+	var req AddWorkspaceMemberRequest
+	err = h.workspaceSvc.DeleteWorkspaceMember(r.Context(), req.UserMail, workspaceID, memberID)
+	if err != nil {
+		log.Error("failed to delete workspace member: %v", err)
+		errors.WriteError(w, errors.ToHTTP(err))
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// @Summary		List workspace members
+// @Description	Returns all members of the specified workspace.
+// @Tags			workspaces
+// @Produce		json
+// @Param			workspaceID	path		string	true	"Workspace ID"
+// @Success		200				{array}		map[string]interface{}
+// @Failure		400				{object}	errors.HTTPError
+// @Failure		401				{object}	errors.HTTPError
+// @Failure		403				{object}	errors.HTTPError
+// @Failure		404				{object}	errors.HTTPError
+// @Failure		500				{object}	errors.HTTPError
+// @Router			/workspaces/{workspaceID}/members [get]
+func (h *Handler) GetWorkspaceMembers(w http.ResponseWriter, r *http.Request) {
+	workspaceIDStr := chi.URLParam(r, "workspaceID")
+	workspaceID, err := uuid.Parse(workspaceIDStr)
+	if err != nil || workspaceID == uuid.Nil {
+		log.Warn("invalid workspace ID: %v", err)
+		errors.WriteError(w, errors.ErrBadRequest.WithDetail("invalid workspace ID"))
+		return
+	}
+
+	members, err := h.workspaceSvc.ListWorkspaceMembers(r.Context(), workspaceID)
+	if err != nil {
+		log.Error("failed to get workspace members: %v", err)
+		errors.WriteError(w, errors.ToHTTP(err))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(members)
 }

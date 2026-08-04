@@ -203,6 +203,11 @@ definitions:
       url:
         type: string
     type: object
+  interfaces_server_workspace.AddWorkspaceMemberRequest:
+    properties:
+      user_mail:
+        type: string
+    type: object
   interfaces_server_workspace.CreateWorkspaceRequest:
     properties:
       name:

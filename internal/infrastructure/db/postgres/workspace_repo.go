@@ -51,6 +51,26 @@ func (r *WorkspaceRepository) FindByName(ctx context.Context, name string) (*wor
 	}
 	return dbWorkspace.ToDomain(), nil
 }
+func (r *WorkspaceRepository) GetWorkspaceByID(ctx context.Context, id uuid.UUID) (*workspace.Workspace, error) {
+	if id == uuid.Nil {
+		return nil, workspace.ErrWorkspaceIDEmpty
+	}
+
+	var dbWorkspace models.DBWorkspace
+	if err := r.db.
+		WithContext(ctx).
+		Preload("Members").
+		First(&dbWorkspace, "id = ?", id).
+		Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, workspace.ErrWorkspaceNotFound
+		}
+
+		return nil, workspace.ErrDatabaseOperation.WithErr(err)
+	}
+
+	return dbWorkspace.ToDomain(), nil
+}
 
 func (r *WorkspaceRepository) GetUserWorkspaces(ctx context.Context, ownerID uuid.UUID) ([]*workspace.Workspace, error) {
 	if ownerID == uuid.Nil {
@@ -120,6 +140,28 @@ func (r *WorkspaceRepository) FindByMemberID(ctx context.Context, memberID uuid.
 
 	return r.convertToWorkspaces(dbWorkspaces), nil
 }
+func (r *WorkspaceRepository) FindMember(ctx context.Context, workspaceID, userID uuid.UUID) (*workspace.Member, error) {
+	if workspaceID == uuid.Nil {
+		return nil, workspace.ErrWorkspaceIDEmpty
+	}
+
+	if userID == uuid.Nil {
+		return nil, workspace.ErrMemberIDEmpty
+	}
+
+	var dbMember models.DBMember
+	err := r.db.WithContext(ctx).Where("workspace_id = ? AND user_id = ?", workspaceID, userID).First(&dbMember).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, workspace.ErrMemberNotFound
+		}
+
+		return nil, workspace.ErrDatabaseOperation.WithErr(err)
+	}
+
+	return dbMember.ToDomain(), nil
+}
 
 func (r *WorkspaceRepository) AddMember(ctx context.Context, member *workspace.Member) error {
 	if member == nil {
@@ -133,14 +175,14 @@ func (r *WorkspaceRepository) AddMember(ctx context.Context, member *workspace.M
 	return nil
 }
 
-func (r *WorkspaceRepository) RemoveMember(ctx context.Context, workspaceID, userID uuid.UUID) error {
-	if workspaceID == uuid.Nil || userID == uuid.Nil {
+func (r *WorkspaceRepository) RemoveMember(ctx context.Context, workspaceID, memberID uuid.UUID) error {
+	if workspaceID == uuid.Nil || memberID == uuid.Nil {
 		return workspace.ErrInvalidMember
 	}
 
-	result := r.db.WithContext(ctx).Delete(&models.DBMember{}, "workspace_id = ? AND user_id = ?", workspaceID.String(), userID.String())
+	result := r.db.WithContext(ctx).Delete(&models.DBMember{}, "workspace_id = ? AND id = ?", workspaceID.String(), memberID.String())
 	if result.Error != nil {
-		return workspace.ErrRemoveMemberFailed.WithErr(result.Error)
+		return workspace.ErrRemoveMemberFailed.WithErr(result.Error).WithDetail("failed in remove member (db)")
 	}
 	if result.RowsAffected == 0 {
 		return workspace.ErrMemberNotFound

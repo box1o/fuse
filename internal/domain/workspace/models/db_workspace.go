@@ -45,6 +45,8 @@ type DBMember struct {
 	db.Model
 	UserID      string `gorm:"not null;size:36" json:"user_id"`
 	WorkspaceID string `gorm:"not null;size:36" json:"workspace_id"`
+	Name        string `gorm:"not null;size:255" json:"name"`
+	Mail        string `gorm:"not null;size:320" json:"mail"`
 	Role        string `gorm:"not null;default:'member';size:50" json:"role"`
 }
 
@@ -57,6 +59,8 @@ func FromDomainMember(domainMember *workspace.Member) *DBMember {
 		Model:       db.Model{ID: domainMember.ID, CreatedAt: domainMember.CreatedAt, UpdatedAt: domainMember.UpdatedAt},
 		UserID:      domainMember.UserID.String(),
 		WorkspaceID: domainMember.WorkspaceID.String(),
+		Name:        domainMember.Name,
+		Mail:        domainMember.Mail,
 		Role:        string(domainMember.Role),
 	}
 }
@@ -66,6 +70,8 @@ func (d *DBMember) ToDomain() *workspace.Member {
 		ID:          d.ID,
 		UserID:      uuid.MustParse(d.UserID),
 		WorkspaceID: uuid.MustParse(d.WorkspaceID),
+		Name:        d.Name,
+		Mail:        d.Mail,
 		Role:        workspace.Role(d.Role),
 		CreatedAt:   d.CreatedAt,
 		UpdatedAt:   d.UpdatedAt,
