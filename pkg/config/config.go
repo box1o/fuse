@@ -111,6 +111,8 @@ func setupViper() error {
 	viper.AutomaticEnv()
 
 	creditPriceBindings := map[string]string{
+		"mail.website": "MAIL_WEBSITE",
+
 		"stripe.secret_key":     "STRIPE_SECRET_KEY",
 		"stripe.webhook_secret": "STRIPE_WEBHOOK_SECRET",
 		"stripe.pro_price_id":   "STRIPE_PRO_PRICE_ID",

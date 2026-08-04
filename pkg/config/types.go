@@ -88,6 +88,7 @@ type MailConfig struct {
 	From     string `mapstructure:"from" `
 	Password string `mapstructure:"password" `
 	Name     string `mapstructure:"name" `
+	Website  string `mapstructure:"website"`
 }
 
 type StripeConfig struct {

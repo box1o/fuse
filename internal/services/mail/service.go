@@ -70,6 +70,7 @@ func (s *Service) Setup() error {
 				[]string{payload.UserEmail},
 				payload.UserName,
 				payload.WorkspaceName,
+				payload.WorkspaceID,
 			)
 		},
 	); err != nil {
@@ -103,9 +104,9 @@ func (s *Service) Setup() error {
 func (s *Service) SendAccountCreatedMail(to []string, username string) error {
 	h := hermes.Hermes{
 		Product: hermes.Product{
-			Name:      "Fuse",
-			Link:      "https://www.fuse.com/",
-			Copyright: "© 2025 Fuse. Toate drepturile rezervate.",
+			Name:      "Teckstate",
+			Link:      s.cfg.Mail.Website,
+			Copyright: "© 2025 Teckstate. Toate drepturile rezervate.",
 		},
 		Theme: new(hermes.Default),
 	}
@@ -114,7 +115,7 @@ func (s *Service) SendAccountCreatedMail(to []string, username string) error {
 		Body: hermes.Body{
 			Name: username,
 			Intros: []string{
-				"Bun venit pe platforma Fuse! Contul tău a fost creat cu succes.",
+				"Bun venit pe platforma Teckstate! Contul tău a fost creat cu succes.",
 			},
 			Actions: []hermes.Action{
 				{
@@ -122,15 +123,15 @@ func (s *Service) SendAccountCreatedMail(to []string, username string) error {
 					Button: hermes.Button{
 						Color: "#4F46E5",
 						Text:  "Accesează Contul",
-						Link:  "https://www.fuse.com/",
+						Link:  s.cfg.Mail.Website,
 					},
 				},
 			},
 			Outros: []string{
-				"Dacă ai întrebări, echipa noastră de suport este aici pentru tine: support@fuse.app",
+				"Dacă ai întrebări, echipa noastră de suport este aici pentru tine: support@Teckstate.app",
 				"Îți dorim o experiență plăcută!",
 			},
-			Signature: "Echipa Fuse",
+			Signature: "Echipa Teckstate",
 		},
 	}
 
@@ -145,9 +146,9 @@ func (s *Service) SendAccountCreatedMail(to []string, username string) error {
 func (s *Service) SendWorkspaceCreatedMail(to []string, workspace string) error {
 	h := hermes.Hermes{
 		Product: hermes.Product{
-			Name:      "Fuse",
-			Link:      "https://www.fuse.com/",
-			Copyright: "© 2025 Fuse. Toate drepturile rezervate.",
+			Name:      "Teckstate",
+			Link:      s.cfg.Mail.Website,
+			Copyright: "© 2025 Teckstate. Toate drepturile rezervate.",
 		},
 		Theme: new(hermes.Default),
 	}
@@ -164,15 +165,15 @@ func (s *Service) SendWorkspaceCreatedMail(to []string, workspace string) error 
 					Button: hermes.Button{
 						Color: "#22C55E",
 						Text:  "Accesează Workspace-ul",
-						Link:  "https://www.fuse.com/",
+						Link:  s.cfg.Mail.Website,
 					},
 				},
 			},
 			Outros: []string{
 				"Acum poți începe să inviti membri și să gestionezi proiectele tale.",
-				"Pentru suport: support@fuse.app",
+				"Pentru suport: support@Teckstate.app",
 			},
-			Signature: "Echipa Fuse",
+			Signature: "Echipa Teckstate",
 		},
 	}
 
@@ -184,12 +185,20 @@ func (s *Service) SendWorkspaceCreatedMail(to []string, workspace string) error 
 	return sendEmail(s.from, s.password, to, "Workspace creat cu succes!", htmlContent)
 }
 
-func (s *Service) SendWorkspaceMemberMailAdd(to []string, username, workspace string) error {
+func (s *Service) SendWorkspaceMemberMailAdd(to []string, username, workspaceName, workspaceId string) error {
+	workspaceURL := fmt.Sprintf(
+		"%s/workspace?workspace=%s",
+		s.cfg.Mail.Website,
+		workspaceId,
+	)
+
+	log.Info("Generated workspace URL: %s", workspaceURL)
+
 	h := hermes.Hermes{
 		Product: hermes.Product{
-			Name:      "Fuse",
-			Link:      "https://www.fuse.com/",
-			Copyright: "© 2025 Fuse. Toate drepturile rezervate.",
+			Name:      "Teckstate",
+			Link:      s.cfg.Mail.Website,
+			Copyright: "© 2025 Teckstate. Toate drepturile rezervate.",
 		},
 		Theme: new(hermes.Default),
 	}
@@ -198,7 +207,7 @@ func (s *Service) SendWorkspaceMemberMailAdd(to []string, username, workspace st
 		Body: hermes.Body{
 			Name: username,
 			Intros: []string{
-				fmt.Sprintf("Ai fost adăugat în workspace-ul **%s** ca membru!", workspace),
+				fmt.Sprintf("Ai fost adăugat în workspace-ul **%s** ca membru!", workspaceName),
 			},
 			Actions: []hermes.Action{
 				{
@@ -206,15 +215,15 @@ func (s *Service) SendWorkspaceMemberMailAdd(to []string, username, workspace st
 					Button: hermes.Button{
 						Color: "#22C55E",
 						Text:  "Accesează Workspace-ul",
-						Link:  "https://www.fuse.com/",
+						Link:  workspaceURL,
 					},
 				},
 			},
 			Outros: []string{
 				"Acum poți colabora cu ceilalți membri și gestiona proiectele workspace-ului.",
-				"Pentru suport: support@fuse.app",
+				"Pentru suport: support@Teckstate.app",
 			},
-			Signature: "Echipa Fuse",
+			Signature: "Echipa Teckstate",
 		},
 	}
 
@@ -223,15 +232,15 @@ func (s *Service) SendWorkspaceMemberMailAdd(to []string, username, workspace st
 		return fmt.Errorf("failed to generate workspace member email: %w", err)
 	}
 
-	return sendEmail(s.from, s.password, to, fmt.Sprintf("Ai fost adăugat în workspace-ul %s", workspace), htmlContent)
+	return sendEmail(s.from, s.password, to, fmt.Sprintf("Ai fost adăugat în workspace-ul %s", workspaceName), htmlContent)
 }
 
 func (s *Service) SendWorkspaceMemberMailRemove(to []string, username, workspace string) error {
 	h := hermes.Hermes{
 		Product: hermes.Product{
-			Name:      "Fuse",
-			Link:      "https://www.fuse.com/",
-			Copyright: "© 2025 Fuse. Toate drepturile rezervate.",
+			Name:      "Teckstate",
+			Link:      s.cfg.Mail.Website,
+			Copyright: "© 2025 Teckstate. Toate drepturile rezervate.",
 		},
 		Theme: new(hermes.Default),
 	}
@@ -248,15 +257,15 @@ func (s *Service) SendWorkspaceMemberMailRemove(to []string, username, workspace
 					Button: hermes.Button{
 						Color: "#22C55E",
 						Text:  "Accesează Workspace-ul",
-						Link:  "https://www.fuse.com/",
+						Link:  s.cfg.Mail.Website,
 					},
 				},
 			},
 			Outros: []string{
 				"Colaborația cu ceilalți membri a fost inchisa",
-				"Pentru suport: support@fuse.app",
+				"Pentru suport: support@Teckstate.app",
 			},
-			Signature: "Echipa Fuse",
+			Signature: "Echipa Teckstate",
 		},
 	}
 
@@ -271,9 +280,9 @@ func (s *Service) SendWorkspaceMemberMailRemove(to []string, username, workspace
 func (s *Service) SendIssueMail(to []string, subject, message string) error {
 	h := hermes.Hermes{
 		Product: hermes.Product{
-			Name:      "Fuse",
-			Link:      "https://www.fuse.com/",
-			Copyright: "© 2025 Fuse. Toate drepturile rezervate.",
+			Name:      "Teckstate",
+			Link:      s.cfg.Mail.Website,
+			Copyright: "© 2025 Teckstate. Toate drepturile rezervate.",
 		},
 		Theme: new(hermes.Default),
 	}

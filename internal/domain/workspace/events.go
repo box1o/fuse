@@ -12,6 +12,7 @@ type WorkspaceAddMail struct {
 	WorkspaceName string
 	UserName      string
 	UserEmail     string
+	WorkspaceID   string
 }
 
 // Workspace remove event
@@ -21,11 +22,12 @@ type WorkspaceRemoveMail struct {
 	UserEmail     string
 }
 
-func NewWorkspaceAddMail(workspaceName, userName, userEmail string) *events.BaseEvent {
+func NewWorkspaceAddMail(workspaceName, userName, userEmail, workspaceID string) *events.BaseEvent {
 	return events.NewBaseEvent(WorkspaceAddMailEvent, WorkspaceAddMail{
 		WorkspaceName: workspaceName,
 		UserName:      userName,
 		UserEmail:     userEmail,
+		WorkspaceID:   workspaceID,
 	})
 }
 

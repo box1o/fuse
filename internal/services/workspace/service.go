@@ -115,7 +115,7 @@ func (s *Service) AddWorkspaceMember(ctx context.Context, workspaceID uuid.UUID,
 		return nil, nil
 	}
 
-	if err := s.eventBus.Publish(ctx, workspace.NewWorkspaceAddMail(ws.Name, user.Name, user.Email)); err != nil {
+	if err := s.eventBus.Publish(ctx, workspace.NewWorkspaceAddMail(ws.Name, user.Name, user.Email, workspaceID.String())); err != nil {
 		log.Error("failed to publish workspace member added event: %v", err)
 	}
 	return wsMember, nil
@@ -132,15 +132,15 @@ func (s *Service) DeleteWorkspaceMember(ctx context.Context, userMail string, wo
 		return err
 	}
 
+	if err := s.workspaceRepo.RemoveMember(ctx, workspaceID, memberID); err != nil {
+		log.Error("failed to remove member: %s from workspace: %s, %v", memberID, workspaceID, err)
+		return err
+	}
+
 	ws, err := s.workspaceRepo.GetWorkspaceByID(ctx, workspaceID)
 	if err != nil {
 		log.Error("can't find workspace by ID from db: %v", err)
 		return nil
-	}
-
-	if err := s.workspaceRepo.RemoveMember(ctx, workspaceID, memberID); err != nil {
-		log.Error("failed to remove member: %s from workspace: %s, %v", memberID, workspaceID, err)
-		return err
 	}
 
 	if err := s.eventBus.Publish(ctx, workspace.NewWorkspaceRemovedMail(ws.Name, member.Name, member.Mail)); err != nil {
