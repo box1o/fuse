@@ -3,12 +3,14 @@ package user
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+	"net/url"
+	"strings"
+
+	"fuse/internal/services/auth"
 	"fuse/pkg/config"
 	"fuse/pkg/errors"
 	"fuse/pkg/log"
-	"net/http"
-
-	"fuse/internal/services/auth"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/markbates/goth/gothic"
@@ -18,6 +20,8 @@ type Handler struct {
 	authSvc *auth.Service
 	cfg     *config.Config
 }
+
+const authReturnCookieName = "fuse_auth_return_to"
 
 func NewHandler(authService *auth.Service, cfg *config.Config) *Handler {
 	return &Handler{
@@ -48,6 +52,10 @@ func (h *Handler) BeginAuth(w http.ResponseWriter, r *http.Request) {
 		errors.WriteError(w, errors.ErrBadRequest.WithDetail("provider is required"))
 		return
 	}
+	if returnTo := h.validReturnURL(r.URL.Query().Get("return_to")); returnTo != "" {
+		h.setReturnCookie(w, returnTo)
+	}
+
 	r = r.WithContext(context.WithValue(r.Context(), gothic.ProviderParamKey, provider))
 	gothic.BeginAuthHandler(w, r)
 }
@@ -84,7 +92,15 @@ func (h *Handler) AuthCallback(w http.ResponseWriter, r *http.Request) {
 
 	h.setSessionCookie(w, sid)
 
-	http.Redirect(w, r, h.cfg.Frontend.URL, http.StatusFound)
+	redirectURL := h.cfg.Frontend.URL
+	if cookie, cookieErr := r.Cookie(authReturnCookieName); cookieErr == nil {
+		if returnTo := h.validReturnURL(cookie.Value); returnTo != "" {
+			redirectURL = returnTo
+		}
+	}
+	h.clearReturnCookie(w)
+
+	http.Redirect(w, r, redirectURL, http.StatusFound)
 
 }
 
@@ -157,7 +173,7 @@ func (h *Handler) setSessionCookie(w http.ResponseWriter, sessionID string) {
 		Secure:   h.cfg.Session.Cookie.Secure,
 		HttpOnly: h.cfg.Session.Cookie.HTTPOnly,
 		SameSite: sameSite,
-		MaxAge:   86400,
+		MaxAge:   h.cfg.Session.Duration,
 	}
 	http.SetCookie(w, cookie)
 }
@@ -178,4 +194,52 @@ func (h *Handler) getSessionFromCookie(r *http.Request) string {
 		return ""
 	}
 	return cookie.Value
+}
+
+func (h *Handler) validReturnURL(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return ""
+	}
+
+	returnURL, err := url.Parse(value)
+	if err != nil {
+		return ""
+	}
+	frontendURL, err := url.Parse(h.cfg.Frontend.URL)
+	if err != nil {
+		return ""
+	}
+	if returnURL.Scheme != frontendURL.Scheme || returnURL.Host != frontendURL.Host {
+		return ""
+	}
+	if returnURL.User != nil {
+		return ""
+	}
+
+	return returnURL.String()
+}
+
+func (h *Handler) setReturnCookie(w http.ResponseWriter, returnTo string) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     authReturnCookieName,
+		Value:    returnTo,
+		Path:     "/auth",
+		Secure:   h.cfg.Session.Cookie.Secure,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   600,
+	})
+}
+
+func (h *Handler) clearReturnCookie(w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     authReturnCookieName,
+		Value:    "",
+		Path:     "/auth",
+		Secure:   h.cfg.Session.Cookie.Secure,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   -1,
+	})
 }

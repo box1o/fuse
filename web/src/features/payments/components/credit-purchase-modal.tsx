@@ -83,6 +83,10 @@ const CreditPurchaseModal = ({open,onOpenChange,}: CreditPurchaseModalProps) => 
                 overlayClassName="bg-black/30 backdrop-blur-sm"
                 className="max-h-[calc(100vh-2rem)] overflow-y-auto border-0 bg-transparent p-0 shadow-none sm:max-w-6xl"
             >
+                <Dialog.Title className="sr-only">Purchase credits</Dialog.Title>
+                <Dialog.Description className="sr-only">
+                    Choose a credit pack and continue to Stripe Checkout.
+                </Dialog.Description>
                 <div className="px-10 py-10 sm:px-7 sm:py-8">
                     {isLoadingCreditPacks && <CreditPackSkeletons />}
 

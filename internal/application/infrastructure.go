@@ -10,11 +10,12 @@ import (
 	stripeInfrastructure "fuse/internal/infrastructure/stripe"
 	"fuse/pkg/log"
 
+	cliM "fuse/internal/domain/cli/models"
+	computeM "fuse/internal/domain/compute/models"
 	creditM "fuse/internal/domain/credit/models"
 	paymentM "fuse/internal/domain/payment/models"
 	userM "fuse/internal/domain/user/models"
 	workspaceM "fuse/internal/domain/workspace/models"
-	computeM "fuse/internal/domain/compute/models"
 
 	eventsSvc "fuse/internal/services/events"
 )
@@ -35,6 +36,7 @@ func (a *Application) setupDatabase() error {
 			&creditM.DBTransaction{},
 			&paymentM.DBPayment{},
 			&computeM.DBNode{},
+			&cliM.DBCredential{},
 		); err != nil {
 			return fmt.Errorf("migration failed: %w", err)
 		}

@@ -1,0 +1,88 @@
+version: 1
+
+# Rune builds images once and keeps the cached artifacts immutable. Each VM gets
+# its own writable volume cloned from the selected image.
+runtime:
+  vm:
+    ensure_images: true
+
+kernels:
+  linux-6.1:
+    version: "6.1"
+    architecture: x86_64
+    source: firecracker-ci
+
+images:
+  base-worker:
+    version: v1
+    architecture: x86_64
+    size: 4G
+    system:
+      distribution: debian
+      release: bookworm
+    kernel: linux-6.1
+    packages:
+      - ca-certificates
+      - curl
+      - git
+      - jq
+      - openssh-client
+      - python3
+    capabilities:
+      - shell
+      - jobs
+    environment:
+      DEBIAN_FRONTEND: noninteractive
+      RUNE_WORKER_TYPE: general
+
+  cpp-worker:
+    version: v1
+    architecture: x86_64
+    size: 8G
+    system:
+      distribution: debian
+      release: bookworm
+    kernel: linux-6.1
+    packages:
+      - build-essential
+      - ca-certificates
+      - clang
+      - clang-format
+      - cmake
+      - curl
+      - gdb
+      - git
+      - lldb
+      - ninja-build
+      - pkg-config
+      - python3
+      - python3-pip
+    capabilities:
+      - ci
+      - cpp
+    environment:
+      DEBIAN_FRONTEND: noninteractive
+      RUNE_WORKER_TYPE: cpp
+
+  render-worker:
+    version: v1
+    architecture: x86_64
+    size: 16G
+    system:
+      distribution: debian
+      release: bookworm
+    kernel: linux-6.1
+    packages:
+      - blender
+      - ca-certificates
+      - curl
+      - ffmpeg
+      - git
+      - python3
+      - python3-pip
+    capabilities:
+      - rendering
+      - batch
+    environment:
+      DEBIAN_FRONTEND: noninteractive
+      RUNE_WORKER_TYPE: render
